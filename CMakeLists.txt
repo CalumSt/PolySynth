@@ -13,11 +13,11 @@ endif()
 # Worry not, JUCE's PRODUCT_NAME can have spaces (and is what DAWs display)
 set(PROJECT_NAME "JX11")
 
-project(JX11 VERSION 0.1)
+project(${PROJECT_NAME} VERSION 0.1)
 
 add_subdirectory(JUCE)
 
-juce_add_plugin(JX11
+juce_add_plugin(${PROJECT_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
     # ICON_SMALL ...
@@ -32,7 +32,7 @@ juce_add_plugin(JX11
     PLUGIN_CODE Aran                            # A unique four-character plugin id with exactly one upper-case character
                                                 # GarageBand 10.3 requires the first letter to be upper-case, and the remaining letters to be lower-case
     FORMATS AU VST3 Standalone                  # The formats to build. Other valid formats are: AAX Unity VST AU AUv3
-    PRODUCT_NAME "JX11"                         # The name of the final executable, which can differ from the target name
+    PRODUCT_NAME "JX11"                        # The name of the final executable, which can differ from the target name
 )
 
 juce_generate_juce_header(${PROJECT_NAME})
@@ -53,7 +53,6 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
-        juce::juce_audio_processors
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

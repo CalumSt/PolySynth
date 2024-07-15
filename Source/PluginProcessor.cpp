@@ -8,6 +8,7 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <cstdint>
 
 //==============================================================================
 JX11AudioProcessor::JX11AudioProcessor()
@@ -111,7 +112,7 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>&buffer, ju
         int samplesThisSegment = metadata.samplePosition - bufferOffset;
         // Render the audio that happened before this event if any
         if (samplesThisSegment > 0) {
-            render(buffer, samplesThisSegment,bufferOffset)
+            render(buffer, samplesThisSegment,bufferOffset);
             bufferOffset += samplesThisSegment;
         }
 
@@ -136,7 +137,10 @@ void JX11AudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
     // do nothing
 }
 
-void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset);
+void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
+{
+    // do nothing
+}
 
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool JX11AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const

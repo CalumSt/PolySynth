@@ -94,14 +94,18 @@ void JX11AudioProcessor::changeProgramName (int index, const juce::String& newNa
 //==============================================================================
 void JX11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    synth.allocateResources(sampleRate, samplesPerBlock);
+    synth.reset();
 }
 
 void JX11AudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    synth.deallocateResources();
+}
+
+void JX11AudioProcessor::reset()
+{
+    synth.reset();
 }
 
 void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>&buffer, juce::MidiBuffer& midiMessages)
@@ -134,7 +138,7 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>&buffer, ju
 
 void JX11AudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
 {
-    // do nothing
+    synth.midiMessages(data0, data1, data2);
 }
 
 void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
@@ -176,6 +180,9 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+
+    // Process MIDI events
+    splitBufferByEvents(buffer, midiMessages);
 }
 
 //==============================================================================

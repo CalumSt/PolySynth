@@ -13,6 +13,10 @@ endif()
 # Worry not, JUCE's PRODUCT_NAME can have spaces (and is what DAWs display)
 set(PROJECT_NAME "JX11")
 
+# From Eyal Amir: https://forum.juce.com/t/cmake-and-intellisense-for-windows-vscode/62183
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+
+
 project(${PROJECT_NAME} VERSION 0.1)
 
 add_subdirectory(JUCE)

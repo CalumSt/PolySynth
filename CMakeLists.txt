@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 # Always use the newest C++ standard on green-field projects if possible.
 set(CMAKE_CXX_STANDARD 23)
 if (APPLE)
@@ -37,13 +35,13 @@ juce_add_plugin(JX11
     PRODUCT_NAME "JX11"                         # The name of the final executable, which can differ from the target name
 )
 
-juce_generate_juce_header(JX11)
+juce_generate_juce_header(${PROJECT_NAME})
 
 file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS 
 "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h")
 target_sources("${PROJECT_NAME}" PRIVATE ${SourceFiles})
 
-target_compile_definitions(JX11
+target_compile_definitions(${PROJECT_NAME}
     PUBLIC
         # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
@@ -51,10 +49,11 @@ target_compile_definitions(JX11
         JUCE_VST3_CAN_REPLACE_VST2=0)
 
 
-target_link_libraries(JX11
+target_link_libraries(${PROJECT_NAME}
     PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
+        juce::juce_audio_processors
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

@@ -1,12 +1,14 @@
 JX11.jucer
-Builds/*
-
+Builds
+build/*
+.vscode
+.cache
 
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
-Makefile
+Makefil
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json

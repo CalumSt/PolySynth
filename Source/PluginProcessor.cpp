@@ -143,7 +143,16 @@ void JX11AudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
 
 void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
 {
-    // do nothing
+    float* outputBuffers[2] = { nullptr, nullptr };
+    // Write first channel
+    // add offset to Pointer
+    outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
+    // If stereo, write to 2nd channel
+    if (getTotalNumInputChannels() > 1) {
+        outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
+    }
+    // TODO: remove raw pointers and replace with JuceAudioBuffer
+    synth.render(outputBuffers, sampleCount);
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations

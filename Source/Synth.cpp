@@ -1,4 +1,5 @@
 #include "Synth.h"
+#include "Utils.h"
 
 // This class defines the Synthesiser interface and rendering methods.
 // 15/07/2024
@@ -35,16 +36,19 @@ void Synth::render(float** outputBuffers, int sampleCount)
         auto noiseSample = noise.nextValue();
 
         // make sure note is being played, then apply velocity
-        float output = 0.0f;
+        float outputSample = 0.0f;
         if (voice.note > 0) {
-            output = noiseSample * (voice.velocity / 127.0f) * 0.5f;
+            outputSample = noiseSample * (voice.velocity / 127.0f) * 0.5f;
         }
          // copy output to each channel, only applying to left if we're in mono
-        outputBufferLeft[sample] = output;
+        outputBufferLeft[sample] = outputSample;
         if (outputBufferRight != nullptr) {
-            outputBufferRight[sample] = output;
+            outputBufferRight[sample] = outputSample;
         }
     }
+
+    //protectYourEars(outputBufferLeft,sampleCount);
+    //protectYourEars(outputBufferRight,sampleCount);
 }
 
 void Synth::midiMessages(uint8_t data0,uint8_t data1,uint8_t data2)

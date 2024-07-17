@@ -108,22 +108,22 @@ void JX11AudioProcessor::reset()
     synth.reset();
 }
 
-void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>&buffer, juce::MidiBuffer& midiMessages)
+void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessageList)
 {
     int bufferOffset = 0;
 
-    for (const auto metadata : midiMessages) {
-        int samplesThisSegment = metadata.samplePosition - bufferOffset;
+    for (const auto midiMessage : midiMessageList) {
+        int samplesThisSegment = midiMessage.samplePosition - bufferOffset;
         // Render the audio that happened before this event if any
         if (samplesThisSegment > 0) {
             render(buffer, samplesThisSegment,bufferOffset);
             bufferOffset += samplesThisSegment;
         }
 
-        if (metadata.numBytes <= 3) {
-            uint8_t data1 = (metadata.numBytes >= 2) ? metadata.data[1] : 0;
-            uint8_t data2 = (metadata.numBytes >= 3) ? metadata.data[2] : 0;
-            handleMidi(metadata.data[0],data1,data2);
+        if (midiMessage.numBytes <= 3) {
+            uint8_t data1 = (midiMessage.numBytes >= 2) ? midiMessage.data[1] : 0;
+            uint8_t data2 = (midiMessage.numBytes == 3) ? midiMessage.data[2] : 0;
+            handleMidi(midiMessage.data[0],data1,data2);
         }
     }
     // Render audio after the last midi event
@@ -132,7 +132,7 @@ void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>&buffer, ju
         render(buffer, samplesLastSegment,bufferOffset);
     }
 
-    midiMessages.clear();
+    midiMessageList.clear();
     
 }
 
@@ -181,7 +181,7 @@ bool JX11AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) con
 }
 #endif
 
-void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessageList)
 {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
@@ -190,8 +190,8 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // Process MIDI events
-    splitBufferByEvents(buffer, midiMessages);
+    // Process MIDI events - render is held in this too
+    splitBufferByEvents(buffer, midiMessageList);
 }
 
 //==============================================================================

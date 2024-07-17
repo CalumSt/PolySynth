@@ -38,7 +38,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         // make sure note is being played, then apply velocity
         float outputSample = 0.0f;
         if (voice.note > 0) {
-            outputSample = noiseSample * (voice.velocity / 127.0f) * 0.5f;
+            outputSample = voice.render();
         }
          // copy output to each channel, only applying to left if we're in mono
         outputBufferLeft[sample] = outputSample;
@@ -74,8 +74,12 @@ void Synth::midiMessages(uint8_t data0,uint8_t data1,uint8_t data2)
 
 void Synth::noteOn(int note,int velocity)
 {
-    voice.note;
-    voice.velocity = velocity;
+    voice.note = note;
+    voice.oscillator.amplitude = (velocity / 127.0f) * 0.5f;
+    voice.oscillator.frequency = 261.63f;
+    voice.oscillator.sampleRate = sampleRate;
+    voice.oscillator.phaseOffset = 0.0f;
+    voice.oscillator.reset();
 }
 
 void Synth::noteOff(int note)

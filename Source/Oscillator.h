@@ -8,7 +8,6 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
  Y8a.    Y88P   Y8a.    .a8P  88  88           88      Y8a     a8P  
   `"Y8888Y"Y8a   `"Y8888Y"'   88  88888888888  88       "Y88888P"   
 */
-
 /*
    _____   __ __   __  
   |_  \ \ / //  | /  | 
@@ -18,33 +17,43 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 \____/\/   \/\___/\___/
 */
 
+
+
 /******************************************************************
- * Voice.h
+ * Oscillator.h
  * 
- * A Class representing a synthesiser voice. A voice holds 
- * oscillators and note information.
+ * A Class representing a synthesiser oscillator.
  * 
  * CS Islay
  ******************************************************************/
 
 
 #pragma once
-#include "Oscillator.h"
+#include <math.h>
 
-struct Voice
+const auto PI = atanf(1.f) * 4;
+const auto TWO_PI = 2 * PI;
+
+class Oscillator
 {
-    int note;
-    int velocity;
-    Oscillator oscillator;
+    public:
+        float amplitude;
+        float frequency;
+        float sampleRate;
+        float phaseOffset;
+        int sampleIndex;
+        
+        void reset()
+        {
+            sampleIndex = 0;
+        }
 
-    void reset()
-    {
-        note = 0;
-        velocity = 0;
-    }
-
-    float render()
-    {
-        return oscillator.nextSample();
-    }
+        float nextSample()
+        {
+            // Literally use sin equation for wave, increase sampleIndex, and return the calculated sample.
+            // TODO: replace with BLIT or BLEP
+            float output = amplitude * sinf(TWO_PI * sampleIndex * frequency / sampleRate+phaseOffset);
+            sampleIndex += 1;
+            return output;
+        };
 };

@@ -22,20 +22,37 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 /******************************************************************
  * Oscillator.h
  * 
- * Base class for other oscillators
- * Ideally want to combine into one file - potentially with enums
- * How to handle the changing from one waveform to another will
- * need some thought
+ * A Class representing a synthesiser oscillator.
  * 
  * CS Islay
  ******************************************************************/
 
-const auto PI = atanf(1.f) * 4;
-const auto TWO_PI = 2 * PI;
 
-class Oscillator {
+#pragma once
+#include <math.h>
+#include "Oscillator.h"
+
+class SawtoothOscillator : public Oscillator
+{
     public:
-        virtual void reset();
-        virtual float nextSample();
+        float amplitude;
+        float inc;
+        float phase;
+        
+        void reset() override
+        {
+            phase = 0.0f;
+        }
 
+        float nextSample() override
+        {
+            // Replaced with a phase counter which is set by an input frequency and sample rate.
+            // This can go to higher pitches without falling to bits.
+            // TODO: replace with BLIT or BLEP
+            phase += inc;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
+            }
+            return amplitude * sinf(TWO_PI * phase);
+        };
 };

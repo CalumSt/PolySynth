@@ -38,22 +38,23 @@ class Oscillator
 {
     public:
         float amplitude;
-        float frequency;
-        float sampleRate;
-        float phaseOffset;
-        int sampleIndex;
+        float inc;
+        float phase;
         
         void reset()
         {
-            sampleIndex = 0;
+            phase = 0.0f;
         }
 
         float nextSample()
         {
-            // Literally use sin equation for wave, increase sampleIndex, and return the calculated sample.
+            // Replaced with a phase counter which is set by an input frequency and sample rate.
+            // This can go to higher pitches without falling to bits.
             // TODO: replace with BLIT or BLEP
-            float output = amplitude * sinf(TWO_PI * sampleIndex * frequency / sampleRate+phaseOffset);
-            sampleIndex += 1;
-            return output;
+            phase += inc;
+            if (phase >= 1.0f) {
+                phase -= 1.0f;
+            }
+            return amplitude * sinf(TWO_PI * phase);
         };
 };

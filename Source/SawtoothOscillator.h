@@ -35,25 +35,70 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 class SawtoothOscillator : public Oscillator
 {
     public:
-        float amplitude;
-        float inc;
-        float phase;
-
-        float frequency;
+        float amplitude = 1.0f;
+        float period = 0.0f;
         float sampleRate;
-        float phaseBandlimited;
         
         void reset() override
         {
             phase = 0.0f;
             phaseBandlimited = 0.0f;
+            inc   = 0.0f;
         }
 
+        
+        float nextNaiveSample()
+        {
+            return amplitude * nextBandLimitedSample();
+        };
+
+        float nextSample() override
+        {
+            float output = 0.0f;
+            phase += inc;
+
+            // if phase goes over Pi/4, start a new impulse
+            if (phase <= PI_OVER_FOUR) {
+                float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
+                phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
+                phaseMax *= PI;
+
+                inc = phaseMax / halfPeriod;
+                phase = -phase;
+
+                if (phase*phase > 1e-9) { // avoid dividing by 0
+                    output = amplitude*sin(phase) / phase;
+                } else {
+                    output = amplitude;
+                };
+
+            } else { // If between peaks of impulses
+
+                if (phase > phaseMax) { // invert increment and loop back through the sinc function
+                    phase = phaseMax + phaseMax - phase;
+                    inc = -inc;
+                }
+                // calculate the sinc function output - don't need to worry about divide by 0 here
+                output = amplitude * sin(phase) / phase;
+            };
+
+            return output;
+        };
+
+    private:
+        float phase;
+        float phaseMax;
+        float inc;
+        
+        // This are just used for the bandlimited Naive below
+        float incNaive;
+        float frequency;
+        float phaseBandlimited;
+        // This is kept for posterity but isn't used
         float nextBandLimitedSample()
         {
             // Naive Sawtooth
-            // TODO: replace with BLIT or BLEP
-            phaseBandlimited += inc;
+            phaseBandlimited += incNaive;
             if (phaseBandlimited >= 1.0f) {
                 phaseBandlimited -= 1.0f;
             }
@@ -73,9 +118,5 @@ class SawtoothOscillator : public Oscillator
             return output;
         };
 
-        float nextSample() override
-        {
-            return amplitude * nextBandLimitedSample();
-        };
 
 };

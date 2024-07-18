@@ -20,9 +20,11 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 
 
 /******************************************************************
- * Oscillator.h
+ * SawtoothOscillator.h
  * 
- * A Class representing a synthesiser oscillator.
+ * A Class representing a sawtooth oscillator.
+ * This generates a sawtooth waveform using a BLIT.
+ * https://ccrma.stanford.edu/~stilti/papers/blit.pdf
  * 
  * CS Islay
  ******************************************************************/
@@ -43,7 +45,8 @@ class SawtoothOscillator : public Oscillator
         {
             phase = 0.0f;
             phaseBandlimited = 0.0f;
-            inc   = 0.0f;
+            inc = 0.0f;
+            dc = 0.0f;
         }
 
         
@@ -61,6 +64,7 @@ class SawtoothOscillator : public Oscillator
             if (phase <= PI_OVER_FOUR) {
                 float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
                 phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
+                dc = 0.5f * amplitude / phaseMax; // calculate dc offset
                 phaseMax *= PI;
 
                 inc = phaseMax / halfPeriod;
@@ -81,16 +85,19 @@ class SawtoothOscillator : public Oscillator
                 // calculate the sinc function output - don't need to worry about divide by 0 here
                 output = amplitude * sin(phase) / phase;
             };
-
-            return output;
+            // convert the BLIT into a saw wave with a leaky integrator (adding up inputs over time)
+            saw = saw * 0.997f + output - dc;
+            return saw;
         };
 
     private:
         float phase;
         float phaseMax;
         float inc;
+        float dc;
+        float saw;
         
-        // This are just used for the bandlimited Naive below
+        // These are just used for the bandlimited Naive below
         float incNaive;
         float frequency;
         float phaseBandlimited;

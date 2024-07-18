@@ -29,13 +29,14 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 
 
 #pragma once
-#include "Oscillator.h"
+#include "SineOscillator.h"
+#include "SawtoothOscillator.h"
 
 struct Voice
 {
     int note;
     int velocity;
-    Oscillator oscillator;
+    SawtoothOscillator oscillator;
 
     void reset()
     {

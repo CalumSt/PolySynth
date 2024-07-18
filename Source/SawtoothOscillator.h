@@ -38,21 +38,44 @@ class SawtoothOscillator : public Oscillator
         float amplitude;
         float inc;
         float phase;
+
+        float frequency;
+        float sampleRate;
+        float phaseBandlimited;
         
         void reset() override
         {
             phase = 0.0f;
+            phaseBandlimited = 0.0f;
         }
+
+        float nextBandLimitedSample()
+        {
+            // Naive Sawtooth
+            // TODO: replace with BLIT or BLEP
+            phaseBandlimited += inc;
+            if (phaseBandlimited >= 1.0f) {
+                phaseBandlimited -= 1.0f;
+            }
+
+            float output = 0.0f;
+            float nyquist = sampleRate / 2.0f;
+            float h = frequency;
+            float harmonicIndex = 1.0f;
+            auto scalingFactor = TWO_OVER_PI;
+
+            while (h < nyquist && h>= 0) {
+                output += scalingFactor * sinf(TWO_PI * phaseBandlimited * harmonicIndex) / harmonicIndex;
+                h += frequency;
+                harmonicIndex += 1.0f;
+                scalingFactor = -scalingFactor;
+            };
+            return output;
+        };
 
         float nextSample() override
         {
-            // Replaced with a phase counter which is set by an input frequency and sample rate.
-            // This can go to higher pitches without falling to bits.
-            // TODO: replace with BLIT or BLEP
-            phase += inc;
-            if (phase >= 1.0f) {
-                phase -= 1.0f;
-            }
-            return amplitude * sinf(TWO_PI * phase);
+            return amplitude * nextBandLimitedSample();
         };
+
 };

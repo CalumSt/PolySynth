@@ -47,8 +47,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
         }
     }
 
-    //protectYourEars(outputBufferLeft,sampleCount);
-    //protectYourEars(outputBufferRight,sampleCount);
+    protectYourEars(outputBufferLeft,sampleCount);
+    protectYourEars(outputBufferRight,sampleCount);
 }
 
 void Synth::midiMessages(uint8_t data0,uint8_t data1,uint8_t data2)
@@ -76,9 +76,8 @@ void Synth::noteOn(int note,int velocity)
 {
     voice.note = note;
     voice.oscillator.amplitude = (velocity / 127.0f) * 0.5f;
-    voice.oscillator.frequency = 261.63f;
-    voice.oscillator.sampleRate = sampleRate;
-    voice.oscillator.phaseOffset = 0.0f;
+    float frequency = 440.0f * std::exp2(float(note - 69) / 12.0f);
+    voice.oscillator.inc = frequency / sampleRate;
     voice.oscillator.reset();
 }
 

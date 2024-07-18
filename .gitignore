@@ -1,6 +1,6 @@
 JX11.jucer
-Builds
-build/*
+Builds/*
+build
 .vscode
 .cache
 

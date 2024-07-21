@@ -1,5 +1,6 @@
 JX11.jucer
 Builds/*
+# CMake and Ninja is sometimes setup to use 'build' by default
 build
 .vscode
 .cache

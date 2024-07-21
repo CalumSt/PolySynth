@@ -108,53 +108,6 @@ void JX11AudioProcessor::reset()
     synth.reset();
 }
 
-void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessageList)
-{
-    int bufferOffset = 0;
-
-    for (const auto midiMessage : midiMessageList) {
-        int samplesThisSegment = midiMessage.samplePosition - bufferOffset;
-        // Render the audio that happened before this event if any
-        if (samplesThisSegment > 0) {
-            render(buffer, samplesThisSegment,bufferOffset);
-            bufferOffset += samplesThisSegment;
-        }
-
-        if (midiMessage.numBytes <= 3) {
-            uint8_t data1 = (midiMessage.numBytes >= 2) ? midiMessage.data[1] : 0;
-            uint8_t data2 = (midiMessage.numBytes == 3) ? midiMessage.data[2] : 0;
-            handleMidi(midiMessage.data[0],data1,data2);
-        }
-    }
-    // Render audio after the last midi event
-    int samplesLastSegment = buffer.getNumSamples() - bufferOffset;
-    if (samplesLastSegment > 0) {
-        render(buffer, samplesLastSegment,bufferOffset);
-    }
-
-    midiMessageList.clear();
-    
-}
-
-void JX11AudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
-{
-    synth.midiMessages(data0, data1, data2);
-}
-
-void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
-{
-    float* outputBuffers[2] = { nullptr, nullptr };
-    // Write first channel
-    // add offset to Pointer
-    outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
-    // If stereo, write to 2nd channel
-    if (getTotalNumInputChannels() > 1) {
-        outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
-    }
-    // TODO: remove raw pointers and replace with JuceAudioBuffer
-    synth.render(outputBuffers, sampleCount);
-}
-
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool JX11AudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
@@ -202,7 +155,9 @@ bool JX11AudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* JX11AudioProcessor::createEditor()
 {
-    return new JX11AudioProcessorEditor (*this);
+    auto editor = new juce::GenericAudioProcessorEditor(*this);
+    editor->setSize(500,1050);
+    return editor;
 }
 
 //==============================================================================
@@ -219,6 +174,199 @@ void JX11AudioProcessor::setStateInformation (const void* data, int sizeInBytes)
     // whose contents will have been created by the getStateInformation() call.
 }
 
+//==============================================================================
+juce::AudioProcessorValueTreeState::ParameterLayout JX11AudioProcessor::createParameterLayout() {
+
+    juce::AudioProcessorValueTreeState::ParameterLayout layout;
+    // Lambda functions
+    auto oscMixStringFromValue = [](float value, int)
+    {
+        char s[16] = { 0 };
+        snprintf(s, 16, "%4.0f:%2.0f", 100.0 - 0.5f * value, 0.5f * value);
+        return juce::String(s);
+    };
+
+    auto filterVelocityStringFromValue = [](float value, int)
+    {
+        if (value > -90.0f)
+            return juce::String("OFF");
+        else
+            return juce::String(value);
+    };
+
+    auto lfoRateStringFromValue = [](float value, int)
+    {
+        float lfoHz = std::exp(7.0f * value - 4.0f);
+        return juce::String(lfoHz,3);
+    };
+
+    auto vibratoStringFromValue = [](float value, int)
+    {
+        if (value > 0.0f)
+            return "PWM " + juce::String(-value,1);
+        else
+            return juce::String(value,1);
+    };
+
+    // Parameters
+    layout.add(std::make_unique<juce::AudioParameterChoice>("polyMode", "Polyphony",
+               juce::StringArray{"Mono","Poly"},1));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscTune", "Osc Tune",
+               juce::NormalisableRange<float>(-24.0f,24.0f,1.0f),-12.0f,
+               juce::AudioParameterFloatAttributes().withLabel("semi")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscFine", "Osc Fine",
+               juce::NormalisableRange<float>(-50.0f,50.0f,0.1f,0.3f,true),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("cent")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscMix", "Osc Mix",
+               juce::NormalisableRange<float>(0.0f,100.0f),0.0f,
+               juce::AudioParameterFloatAttributes()
+               .withLabel("%")
+               .withStringFromValueFunction(oscMixStringFromValue)));
+
+    layout.add(std::make_unique<juce::AudioParameterChoice>("glideMode", "Glide Mode",
+               juce::StringArray{"Off", "Legato","Always"},0));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("glideRate", "Glide Rate",
+               juce::NormalisableRange<float>(0.0f,100.f,1.0f),35.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("glideBend", "Glide Bend",
+               juce::NormalisableRange<float>(-36.0f,36.0f,0.01f,0.4f,true),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("Semi")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterFreq", "Filter Freq.",
+               juce::NormalisableRange<float>(0.0f,100.0f,0.1f),100.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterReso", "Filter Reso.",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),15.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnv", "Filter Env.",
+               juce::NormalisableRange<float>(-100.0f,100.0f,0.1f),50.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterLFO", "Filter LFO",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterVelocity", "Filter Vel.",
+               juce::NormalisableRange<float>(-100.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes()
+               .withLabel("%")
+               .withStringFromValueFunction(filterVelocityStringFromValue)));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterAttack", "Filter Atk.",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterDecay", "Filter Dec.",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),30.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterSustain", "Filter Sus.",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterRelease", "Filter Rel.",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),25.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envAttack", "Env. Attack",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envDecay", "Env. Decay",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),50.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envSustain", "Env. Sustain",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),100.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("envRelease", "Env. Release",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),30.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("lfoRate", "LFO Rate",
+               juce::NormalisableRange<float>(),0.81f,
+               juce::AudioParameterFloatAttributes()
+               .withLabel("%")
+               .withStringFromValueFunction(lfoRateStringFromValue)));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("vibrato", "Vibrato",
+               juce::NormalisableRange<float>(-100.0f,100.0f,0.1f),0.0f,
+               juce::AudioParameterFloatAttributes()
+               .withLabel("%")
+               .withStringFromValueFunction(vibratoStringFromValue)));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("noise", "Noise",
+               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("%")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave", "Octave",
+               juce::NormalisableRange<float>(-2.0f,2.0f,1.0f),0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("tuning", "Tuning",
+               juce::NormalisableRange<float>(-100.0f,100.0f,0.1f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("cent")));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("outputLevel", "Output Level",
+               juce::NormalisableRange<float>(-24.0f,6.0f,0.1f),0.0f,
+               juce::AudioParameterFloatAttributes().withLabel("dB")));
+
+    return layout;
+}
+
+//==============================================================================
+void JX11AudioProcessor::splitBufferByEvents(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessageList)
+{
+    int bufferOffset = 0;
+
+    for (const auto midiMessage : midiMessageList) {
+        int samplesThisSegment = midiMessage.samplePosition - bufferOffset;
+        // Render the audio that happened before this event if any
+        if (samplesThisSegment > 0) {
+            render(buffer, samplesThisSegment,bufferOffset);
+            bufferOffset += samplesThisSegment;
+        }
+
+        if (midiMessage.numBytes <= 3) {
+            uint8_t data1 = (midiMessage.numBytes >= 2) ? midiMessage.data[1] : 0;
+            uint8_t data2 = (midiMessage.numBytes == 3) ? midiMessage.data[2] : 0;
+            handleMidi(midiMessage.data[0],data1,data2);
+        }
+    }
+    // Render audio after the last midi event
+    int samplesLastSegment = buffer.getNumSamples() - bufferOffset;
+    if (samplesLastSegment > 0) {
+        render(buffer, samplesLastSegment,bufferOffset);
+    }
+
+    midiMessageList.clear();
+    
+}
+void JX11AudioProcessor::handleMidi(uint8_t data0, uint8_t data1, uint8_t data2)
+{
+    synth.midiMessages(data0, data1, data2);
+}
+
+void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCount, int bufferOffset)
+{
+    float* outputBuffers[2] = { nullptr, nullptr };
+    // Write first channel
+    // add offset to Pointer
+    outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
+    // If stereo, write to 2nd channel
+    if (getTotalNumInputChannels() > 1) {
+        outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
+    }
+    // TODO: remove raw pointers and replace with JuceAudioBuffer
+    synth.render(outputBuffers, sampleCount);
+}
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

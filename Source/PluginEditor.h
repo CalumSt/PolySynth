@@ -9,11 +9,9 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include "PluginProcessor.h"#
 
 //==============================================================================
-/**
-*/
 class JX11AudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:

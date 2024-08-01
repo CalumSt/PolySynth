@@ -33,12 +33,12 @@ void Synth::render(float** outputBuffers, int sampleCount)
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
         // get next noise sample
-        auto noiseSample = noise.nextValue();
+        auto noiseSample = noise.nextValue() * noiseMix;
 
         // make sure note is being played, then apply velocity
         float outputSample = 0.0f;
         if (voice.note > 0) {
-            outputSample = voice.render();
+            outputSample = voice.render() + noiseSample;
         }
          // copy output to each channel, only applying to left if we're in mono
         outputBufferLeft[sample] = outputSample;

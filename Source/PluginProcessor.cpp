@@ -23,10 +23,12 @@ JX11AudioProcessor::JX11AudioProcessor()
                        )
 #endif
 {
+    parameterTree.state.addListener(this);
 }
 
 JX11AudioProcessor::~JX11AudioProcessor()
 {
+    parameterTree.state.removeListener(this);
 }
 
 //==============================================================================
@@ -95,6 +97,7 @@ void JX11AudioProcessor::changeProgramName (int index, const juce::String& newNa
 void JX11AudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     synth.allocateResources(sampleRate, samplesPerBlock);
+    parametersChanged.store(true);
     synth.reset();
 }
 
@@ -142,6 +145,11 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
+
+    bool expected = true;
+    if (parametersChanged.compare_exchange_strong(expected,false)) {
+        update(); // This function is used to update parameters
+    }
 
     // Process MIDI events - render is held in this too
     splitBufferByEvents(buffer, midiMessageList);
@@ -366,6 +374,14 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
     }
     // TODO: remove raw pointers and replace with JuceAudioBuffer
     synth.render(outputBuffers, sampleCount);
+}
+
+void JX11AudioProcessor::update()
+{
+    // What's stopping us from doing this
+    float noiseMix = parameterTree.getRawParameterValue("noise")->load() / 100.0f;
+    noiseMix *= noiseMix;
+    synth.noiseMix = noiseMix * 0.06f;
 }
 //==============================================================================
 // This creates new instances of the plugin..

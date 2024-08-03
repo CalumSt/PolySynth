@@ -31,14 +31,14 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 #pragma once
 #include "SineOscillator.h"
 #include "SawtoothOscillator.h"
-#include "Envelope.h"
+#include "ADSREnvelope.h"
 
 struct Voice
 {
     int note;
     int velocity;
     SawtoothOscillator oscillator;
-    Envelope env;
+    ADSREnvelope env;
 
     void reset()
     {

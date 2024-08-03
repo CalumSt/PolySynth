@@ -37,20 +37,24 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 class Synth
 {
     public:
-    Synth();
+      Synth();
 
-    void allocateResources(double sampleRate,int samplesPerBlock);
-    void deallocateResources();
-    void reset();
-    void render(float** outputBuffers, int sampleCount);
-    void midiMessages(uint8_t data0,uint8_t data1,uint8_t data2);
+      void allocateResources(double sampleRate,int samplesPerBlock);
+      void deallocateResources();
+      void reset();
+      void render(float** outputBuffers, int sampleCount);
+      void midiMessages(uint8_t data0,uint8_t data1,uint8_t data2);
 
-    float noiseMix;
+      
+      float noiseMix;
+
+      // ADSR parameters
+      float envDecay;
 
     private:
-    float sampleRate;
-    Voice voice;
-    Noise noise;
-    void noteOn(int note,int velocity);
-    void noteOff(int note);
+      float sampleRate;
+      Voice voice;
+      Noise noise;
+      void noteOn(int note,int velocity);
+      void noteOff(int note);
 };

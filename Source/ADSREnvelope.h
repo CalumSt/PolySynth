@@ -19,7 +19,7 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 */
 
 /******************************************************************
- * Envelope.h
+ * ADSREnvelope.h
  * 
  * A class representing an ADSR envelope and related functionality.
  * 
@@ -27,16 +27,18 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
  ******************************************************************/
 
 #pragma once
+const float SILENCE = 0.0001f;
 
-class Envelope
+class ADSREnvelope
 {
 public:
     float nextValue()
     {
-        level *= 0.999f;
+        level *= multiplier;
         return level;   
-    }
+    };
     
     float level;
+    float multiplier;
 
-}
+};

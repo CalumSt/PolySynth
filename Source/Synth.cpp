@@ -81,7 +81,10 @@ void Synth::noteOn(int note,int velocity)
     float frequency = 440.0f * std::exp2(float(note - 69) / 12.0f);
     voice.oscillator.period = sampleRate / frequency;
     voice.oscillator.reset();
+
+    // ADSR updates
     voice.env.level = 1.0f;
+    voice.env.multiplier = envDecay;
 }
 
 void Synth::noteOff(int note)

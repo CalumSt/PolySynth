@@ -147,7 +147,7 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
         buffer.clear (i, 0, buffer.getNumSamples());
 
     bool expected = true;
-    if (parametersChanged.compare_exchange_strong(expected,false)) {
+    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected,false)) {
         update(); // This function is used to update parameters
     }
 
@@ -378,10 +378,18 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 
 void JX11AudioProcessor::update()
 {
+    // updating ADSR
+    float sampleRate = float(getSampleRate());
+
+    float decayTime = parameterTree.getRawParameterValue("envDecay")->load() * 0.05f;
+    auto numberOfDecaySamples = sampleRate * decayTime;
+    synth.envDecay = std::exp(std::log(SILENCE) / numberOfDecaySamples);
+
     // get the pointer to the atomic and load it, then scale it
-    float noiseMix = parameterTree.getRawParameterValue("noise")->load() / 100.0f;
-    noiseMix *= noiseMix;
-    synth.noiseMix = noiseMix * 0.06f;
+    float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;
+    // Save to Synth object
+    noiseCopy *= noiseCopy;
+    synth.noiseMix = noiseCopy * 0.06f;
 }
 //==============================================================================
 // This creates new instances of the plugin..

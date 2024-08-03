@@ -1,5 +1,7 @@
+#pragma once
 #include "Synth.h"
 #include "Utils.h"
+
 
 // This class defines the Synthesiser interface and rendering methods.
 // 15/07/2024
@@ -38,7 +40,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         // make sure note is being played, then apply velocity
         float outputSample = 0.0f;
         if (voice.note > 0) {
-            outputSample = voice.render() + noiseSample;
+            outputSample = voice.render(noiseSample);
         }
          // copy output to each channel, only applying to left if we're in mono
         outputBufferLeft[sample] = outputSample;
@@ -79,6 +81,7 @@ void Synth::noteOn(int note,int velocity)
     float frequency = 440.0f * std::exp2(float(note - 69) / 12.0f);
     voice.oscillator.period = sampleRate / frequency;
     voice.oscillator.reset();
+    voice.env.level = 1.0f;
 }
 
 void Synth::noteOff(int note)

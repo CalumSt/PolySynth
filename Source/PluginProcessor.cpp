@@ -378,7 +378,7 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 
 void JX11AudioProcessor::update()
 {
-    // What's stopping us from doing this
+    // get the pointer to the atomic and load it, then scale it
     float noiseMix = parameterTree.getRawParameterValue("noise")->load() / 100.0f;
     noiseMix *= noiseMix;
     synth.noiseMix = noiseMix * 0.06f;

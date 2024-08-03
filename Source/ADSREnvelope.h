@@ -19,39 +19,24 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 */
 
 /******************************************************************
- * Voice.h
+ * Envelope.h
  * 
- * A Class representing a synthesiser voice. A voice holds 
- * oscillators and note information.
+ * A class representing an ADSR envelope and related functionality.
  * 
  * CS Islay
  ******************************************************************/
 
-
 #pragma once
-#include "SineOscillator.h"
-#include "SawtoothOscillator.h"
-#include "Envelope.h"
 
-struct Voice
+class Envelope
 {
-    int note;
-    int velocity;
-    SawtoothOscillator oscillator;
-    Envelope env;
-
-    void reset()
+public:
+    float nextValue()
     {
-        note = 0;
-        velocity = 0;
+        level *= 0.999f;
+        return level;   
     }
+    
+    float level;
 
-    float render(float input)
-    {
-        auto nextSample = oscillator.nextSample();
-
-        float envelopeSample = env.nextValue();
-        float outputSample = nextSample + input;
-        return outputSample * envelopeSample;
-    }
-};
+}

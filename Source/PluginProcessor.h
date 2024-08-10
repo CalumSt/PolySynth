@@ -95,7 +95,7 @@ private:
     Synth synth;
     //==============================================================================
     private:
-    std::atomic<bool> parametersChanged { false };
+    std::atomic<bool> parametersChanged { false }; // Use an atomic bool to check for any parameter changes
     void valueTreePropertyChanged(juce::ValueTree&, const juce::Identifier&) override
     {
       parametersChanged.store(true);

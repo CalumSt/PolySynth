@@ -1,38 +1,40 @@
-/*
-  ,ad8888ba,    88        88  88  88      888888888888  ad88888ba   
- d8"'    `"8b   88        88  88  88           88      d8"     "8b  
-d8'        `8b  88        88  88  88           88      Y8,          
-88          88  88        88  88  88           88      `Y8aaaaa,    
-88          88  88        88  88  88           88        `"""""8b,  
-Y8,    "88,,8P  88        88  88  88           88              `8b  
- Y8a.    Y88P   Y8a.    .a8P  88  88           88      Y8a     a8P  
-  `"Y8888Y"Y8a   `"Y8888Y"'   88  88888888888  88       "Y88888P"   
-*/
-/*
-   _____   __ __   __  
-  |_  \ \ / //  | /  | 
-    | |\ V / `| | `| | 
-    | |/   \  | |  | | 
-/\__/ / /^\ \_| |__| |_
-\____/\/   \/\___/\___/
-*/
+/*****************************************************************************
+*   ,ad8888ba,    88        88  88  88      888888888888  ad88888ba   
+*  d8"'    `"8b   88        88  88  88           88      d8"     "8b  
+* d8'        `8b  88        88  88  88           88      Y8,          
+* 88          88  88        88  88  88           88      `Y8aaaaa,    
+* 88          88  88        88  88  88           88        `"""""8b,  
+* Y8,    "88,,8P  88        88  88  88           88              `8b  
+*  Y8a.    Y88P   Y8a.    .a8P  88  88           88      Y8a     a8P  
+*   `"Y8888Y"Y8a   `"Y8888Y"'   88  88888888888  88       "Y88888P"   
+*
+*    _____   __ __   __  
+*   |_  \ \ / //  | /  | 
+*     | |\ V / `| | `| | 
+*     | |/   \  | |  | | 
+* /\__/ / /^\ \_| |__| |_
+* \____/\/   \/\___/\___/
+*
+* @file SawtoothOscillator.h
+* @author CS Islay
+* @brief A Class representing a sawtooth oscillator.
+* 
+* This class generates a sawtooth waveform using a Band-Limited Impulse Train (BLIT).
+* @see https://ccrma.stanford.edu/~stilti/papers/blit.pdf for more information.
+*
+*****************************************************************************/
 
-
-
-/******************************************************************
- * SawtoothOscillator.h
- * 
- * A Class representing a sawtooth oscillator.
- * This generates a sawtooth waveform using a BLIT.
- * https://ccrma.stanford.edu/~stilti/papers/blit.pdf
- * 
- * CS Islay
- ******************************************************************/
 
 
 #pragma once
 #include <math.h>
 #include "Oscillator.h"
+
+/**
+* @class SawtoothOscillator
+* @brief A sawtooth oscillator class that generates a sawtooth waveform using a BLIT.
+* 
+*/
 
 class SawtoothOscillator : public Oscillator
 {
@@ -55,6 +57,13 @@ class SawtoothOscillator : public Oscillator
             return amplitude * nextBandLimitedSample();
         };
 
+        /**
+         * @brief Generates the next sample of the sawtooth waveform using a Band-Limited Impulse Train (BLIT) approach.
+         * 
+         * This method uses a BLIT to generate a sawtooth waveform. It calculates the phase, increment, and DC offset of the waveform based on the period and amplitude.
+         * 
+         * @return The next sample of the sawtooth waveform.
+         */
         float nextSample() override
         {
             float output = 0.0f;
@@ -66,11 +75,11 @@ class SawtoothOscillator : public Oscillator
                 phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
                 dc = 0.5f * amplitude / phaseMax; // calculate dc offset
                 phaseMax *= PI;
-
+                // update inc and phase member variables
                 inc = phaseMax / halfPeriod;
                 phase = -phase;
-
-                if (phase*phase > 1e-9) { // avoid dividing by 0
+                // Calculate the sinc function output (avoid dividing by zero)
+                if (phase*phase > 1e-9) {
                     output = amplitude*sin(phase) / phase;
                 } else {
                     output = amplitude;

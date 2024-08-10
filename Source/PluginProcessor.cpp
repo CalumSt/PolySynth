@@ -280,8 +280,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout JX11AudioProcessor::createPa
                juce::AudioParameterFloatAttributes().withLabel("%")));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRelease", "Filter Rel.",
-               juce::NormalisableRange<float>(0.0f,100.0f,1.0f),25.0f,
-               juce::AudioParameterFloatAttributes().withLabel("%")));
+               juce::NormalisableRange<float>(30.0f,30000.0f,0.01f,0.25f),1500.0f,
+               juce::AudioParameterFloatAttributes().withLabel("ms")));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("envAttack", "Env. Attack",
                juce::NormalisableRange<float>(0.0f,100.0f,1.0f),0.0f,
@@ -378,12 +378,29 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 
 void JX11AudioProcessor::update()
 {
-    // updating ADSR
+    // updating ADSR TODO: tidy this up
     float sampleRate = float(getSampleRate());
+    auto inverseSampleRate = 1.0f / sampleRate;
 
-    float decayTime = parameterTree.getRawParameterValue("envDecay")->load() * 0.05f;
-    auto numberOfDecaySamples = sampleRate * decayTime;
-    synth.envDecay = std::exp(std::log(SILENCE) / numberOfDecaySamples);
+    synth.env.attack = 
+        std::exp(
+            -inverseSampleRate * std::exp(
+            5.5f - 0.075f * parameterTree.getRawParameterValue("envAttack")->load()
+            ));
+
+    synth.env.decay = 
+        std::exp(parameterTree.getRawParameterValue("envDecay")->load());
+
+    synth.env.sustain = parameterTree.getRawParameterValue("envSustain")->load() / 100.0f;
+
+    float envRelease = parameterTree.getRawParameterValue("envRelease")->load();
+
+    if (envRelease < 1.0f) {
+        synth.env.release = 0.75f // extra fast release
+    } else {
+        synth.env.release = std::exp(-inverseSampleRate * std::exp(
+            5.5f - 0.075f * envRelease));
+    }
 
     // get the pointer to the atomic and load it, then scale it
     float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;

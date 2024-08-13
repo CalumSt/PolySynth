@@ -77,12 +77,7 @@ public:
 
     float level; /**<The current level of the envelope. */
 
-
-    float attack;
-    float decay;
-    float sustain;
-    float release;
-
+    // ADSR
     float attackMultiplier;
     float decayMultiplier;
     float sustainLevel;

@@ -34,7 +34,9 @@ struct Voice
     int note;
     int velocity;
     SawtoothOscillator oscillator;
+    SawtoothOscillator oscillator2;
     ADSREnvelope env;
+    float period;
 
     void reset()
     {
@@ -46,9 +48,10 @@ struct Voice
     float render(float input)
     {
         auto nextSample = oscillator.nextSample();
+        auto nextSample2 = oscillator2.nextSample();
 
         float envelopeSample = env.nextValue();
-        float outputSample = nextSample + input;
+        float outputSample = nextSample - nextSample2 + input;
         return outputSample * envelopeSample;
     }
     

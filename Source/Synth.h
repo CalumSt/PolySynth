@@ -42,6 +42,8 @@ class Synth
       void render(float** outputBuffers, int sampleCount);
       void midiMessages(uint8_t data0,uint8_t data1,uint8_t data2);
 
+      Voice voice;
+
       
       float noiseMix;
 
@@ -51,10 +53,19 @@ class Synth
       float envSustain;
       float envRelease;
 
+      // Oscillator parameters
+      float oscMix;
+      float detune;
+      float oscFine;
+      
+      // tuning and pitch bend
+      float tune;
+      float pitchBend;
+
     private:
       float sampleRate;
-      Voice voice;
       Noise noise;
       void noteOn(int note,int velocity);
       void noteOff(int note);
+      float calculatePeriod(int note) const;
 };

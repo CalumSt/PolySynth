@@ -382,25 +382,39 @@ void JX11AudioProcessor::update()
     float sampleRate = float(getSampleRate());
     auto inverseSampleRate = 1.0f / sampleRate;
 
-    synth.env.attack = 
+    synth.voice.env.attackMultiplier = 
         std::exp(
             -inverseSampleRate * std::exp(
             5.5f - 0.075f * parameterTree.getRawParameterValue("envAttack")->load()
             ));
 
-    synth.env.decay = 
+    synth.voice.env.decayMultiplier = 
         std::exp(parameterTree.getRawParameterValue("envDecay")->load());
 
-    synth.env.sustain = parameterTree.getRawParameterValue("envSustain")->load() / 100.0f;
+    synth.voice.env.sustainLevel = parameterTree.getRawParameterValue("envSustain")->load() / 100.0f;
 
     float envRelease = parameterTree.getRawParameterValue("envRelease")->load();
 
     if (envRelease < 1.0f) {
-        synth.env.release = 0.75f // extra fast release
+        synth.voice.env.releaseMultiplier = 0.75f; // extra fast release
     } else {
-        synth.env.release = std::exp(-inverseSampleRate * std::exp(
+        synth.voice.env.releaseMultiplier = std::exp(-inverseSampleRate * std::exp(
             5.5f - 0.075f * envRelease));
     }
+
+    // Oscillators
+    synth.oscMix = parameterTree.getRawParameterValue("oscMix")->load() / 100.0f;
+
+    float semi = parameterTree.getRawParameterValue("oscTune")->load();
+    float cent = parameterTree.getRawParameterValue("oscFine")->load();
+    synth.detune = std::pow(1.059463094359f, -semi - 0.01f * cent);
+    // This is equivalent to std::exp2((-semi - 0.01f * cent) / 12.0f)
+
+    // Synth tuning
+    float octave = parameterTree.getRawParameterValue("octave")->load();
+    float tuning = parameterTree.getRawParameterValue("tuning")->load();
+    float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
+    synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
 
     // get the pointer to the atomic and load it, then scale it
     float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;

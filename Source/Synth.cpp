@@ -26,6 +26,7 @@ void Synth::reset()
 {
     voice.reset();
     noise.reset();
+    pitchBend = 1.0f; // Give this a value as it isn't received if the user doesn't touch the pitch bend
 }
 
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -33,6 +34,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferLeft = outputBuffers[0];
     float* outputBufferRight = outputBuffers[1];
 
+    // set up oscillator periods
+    voice.oscillator.period = voice.period * pitchBend;
+    voice.oscillator2.period = voice.period * detune;
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
         // get next noise sample
@@ -76,7 +80,7 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
             break;
 
         // Note on message (0x90-0x9F)
-        case 0x90: {
+        case 0x90: 
             uint8_t note = data1 & 0x7F; // Extract the note number
             uint8_t velo = data2 & 0x7F; // Extract the velocity
 
@@ -87,7 +91,13 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
                 noteOff(note); // Turn off the note
             }
             break;
-        }
+        
+
+        case 0xE0:
+        // Pitch bend message (0xE0-0xEF)
+            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192))
+            // magic number: 0.000014102 = log(2^(-2/8192)/12)
+            // pitch bend takes values between 0.89 and 1.12
     }
 }
 
@@ -100,20 +110,27 @@ void Synth::noteOn(int note,int velocity)
  */
 {
     voice.note = note;
+    // float frequency = 440.0f * std::exp2(float(note - 69) + tune / 12.0f);
+    // period = sampleRate / frequency;
+
+    // oscillator 1
+    auto period = calculatePeriod(note);
+    voice.period = period;
     voice.oscillator.amplitude = (velocity / 127.0f) * 0.5f;
-    float frequency = 440.0f * std::exp2(float(note - 69) / 12.0f);
-    voice.oscillator.period = sampleRate / frequency;
-    voice.oscillator.reset();
+    // voice.oscillator.reset();
+
+    // oscillator 2
+    voice.oscillator2.amplitude = voice.oscillator.amplitude * oscMix;
+    // voice.oscillator2.reset();
 
     // ADSR updates
     // When note is hit, set parameters for initial attack
-    Envelope& env = voice.env;
-    env.attackMultiplier = env.attack;
-    env.decayMultiplier = env.decay;
-    env.sustainLevel = env.sustain;
-    env.releaseMultiplier = env.release;
-    env.attack();
-    
+    voice.env.attackMultiplier = envAttack;
+    voice.env.decayMultiplier = envDecay;
+    voice.env.sustainLevel = envSustain;
+    voice.env.releaseMultiplier = envRelease;
+    voice.env.attack();
+
 }
 
 void Synth::noteOff(int note)
@@ -126,4 +143,14 @@ void Synth::noteOff(int note)
     if (voice.note == note) {
         voice.release();
     }
+}
+
+float Synth::calculatePeriod(int note) const
+{
+    // Calculate the period of the note based on its frequency.
+    // Ensure the period is 6 samples or greater
+    while (period < 6.0f || (period * detune) < 6.0f) {period += period};
+    // another magic number, this one is equal to log(2^-1/12)
+    float period = tune * std::exp(-0.05776226505f * float(note));
+    return period;
 }

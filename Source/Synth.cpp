@@ -43,14 +43,23 @@ void Synth::render(float** outputBuffers, int sampleCount)
         auto noiseSample = noise.nextValue() * noiseMix;
 
         // make sure note is being played, then apply velocity
-        float outputSample = 0.0f;
-        if (voice.env.isActive()) {
-            outputSample = voice.render(noiseSample);
+        float outputSampleLeft = 0.0f;
+        auto outputSampleRight = outputSampleLeft;
+
+        if (voice.env.isActive()) 
+        {
+            // get next oscillator samples and pan
+            float outputSample = voice.render(noiseSample);
+            outputSampleLeft += outputSample * voice.panLeft;
+            outputSampleRight += outputSample * voice.panRight;
         }
          // copy output to each channel, only applying to left if we're in mono
-        outputBufferLeft[sample] = outputSample;
-        if (outputBufferRight != nullptr) {
-            outputBufferRight[sample] = outputSample;
+        if (outputBufferRight != nullptr) 
+        {
+            outputBufferLeft[sample] = outputSampleLeft;
+            outputBufferRight[sample] = outputSampleRight;
+        } else {
+            outputBufferLeft[sample] = (outputSampleLeft + outputSampleRight) * 0.5f;
         }
     }
 
@@ -81,6 +90,7 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
 
         // Note on message (0x90-0x9F)
         case 0x90: 
+        {
             uint8_t note = data1 & 0x7F; // Extract the note number
             uint8_t velo = data2 & 0x7F; // Extract the velocity
 
@@ -91,17 +101,18 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
                 noteOff(note); // Turn off the note
             }
             break;
-        
-
+        }
+        // Pitch bend message
         case 0xE0:
         // Pitch bend message (0xE0-0xEF)
-            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192))
+            pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
             // magic number: 0.000014102 = log(2^(-2/8192)/12)
             // pitch bend takes values between 0.89 and 1.12
+            break;
     }
 }
 
-void Synth::noteOn(int note,int velocity)
+void Synth::noteOn(int note, int velocity)
 /*
  * Turns on a note on the synthesizer.
  *
@@ -112,6 +123,9 @@ void Synth::noteOn(int note,int velocity)
     voice.note = note;
     // float frequency = 440.0f * std::exp2(float(note - 69) + tune / 12.0f);
     // period = sampleRate / frequency;
+
+    // panning
+    voice.updatePanning();
 
     // oscillator 1
     auto period = calculatePeriod(note);
@@ -148,9 +162,9 @@ void Synth::noteOff(int note)
 float Synth::calculatePeriod(int note) const
 {
     // Calculate the period of the note based on its frequency.
-    // Ensure the period is 6 samples or greater
-    while (period < 6.0f || (period * detune) < 6.0f) {period += period};
     // another magic number, this one is equal to log(2^-1/12)
     float period = tune * std::exp(-0.05776226505f * float(note));
+    // Ensure the period is 6 samples or greater
+    while (period < 6.0f || (period * detune) < 6.0f) {period += period; }
     return period;
 }

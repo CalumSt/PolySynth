@@ -4,6 +4,12 @@
 	branch = develop    
 
 [submodule "googletest"]
-	path = /Libs/googletest
+	path = googletest
 	url = https://github.com/google/googletest/
 	branch = develop
+[submodule "Libs/googletest"]
+	path = Libs/googletest
+	url = https://github.com/google/googletest/
+[submodule "Libs/JUCE"]
+	path = Libs/JUCE
+	url = https://github.com/juce-framework/JUCE/

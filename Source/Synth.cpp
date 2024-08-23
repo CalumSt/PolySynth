@@ -28,7 +28,7 @@ void Synth::reset()
     noise.reset();
     pitchBend = 1.0f; // Give this a value as it isn't received if the user doesn't touch the pitch bend
 }
-
+// TODO: Get descriptions for these inputs
 void Synth::render(float** outputBuffers, int sampleCount)
 {
     float* outputBufferLeft = outputBuffers[0];

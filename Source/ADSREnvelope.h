@@ -19,6 +19,7 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 * @author CS Islay
 * @class ADSREnvelope
 * @brief A class representing an ADSR envelope and related functionality.
+* ADSREnvelope is a state machine to handle the different stages.
 * 
 ************************************************************************/
 
@@ -75,7 +76,41 @@ public:
         multiplier = attackMultiplier;
     }
 
+    void setAttack(float normalisedAttack)
+    {
+        attackMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * normalisedAttack));
+    }
+
+    void setDecay(float normalisedDecay)
+    {
+        decayMultiplier = std::exp(normalisedDecay);
+    }
+
+    void setSustain(float normalisedSustain)
+    {
+        sustainLevel = normalisedSustain / 100.0f;
+    }
+
+    void setRelease(float normalisedRelease)
+    {
+
+        if (normalisedRelease < 1.0f) {
+            releaseMultiplier = 0.75f; // extra fast release
+        } else {
+            releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * normalisedRelease));
+        }
+
+
+    }
+
+    void setSampleRate(float currentSampleRate)
+    {
+        sampleRate = currentSampleRate;
+        inverseSampleRate = 1.0f / currentSampleRate;
+    }
+
     float level; /**<The current level of the envelope. */
+    float sampleRate; /**<The sample rate of the signal the envelope is being applied to */
 
     // ADSR
     float attackMultiplier;
@@ -86,5 +121,6 @@ public:
 private:
     float multiplier; /**<The multiplier used to calculate the next value. */
     float target; /**<The target value of the envelope. */
+    float inverseSampleRate;
 
 };

@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
 project(${PROJECT_NAME} VERSION 0.1)
 
-add_subdirectory(JUCE)
+add_subdirectory(Libs/JUCE)
 
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
@@ -61,3 +61,10 @@ target_link_libraries(${PROJECT_NAME}
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+
+## Testing
+
+add_subdirectory(Tests)
+add_subdirectory(Libs/googletest)
+enable_testing()

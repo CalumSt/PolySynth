@@ -24,6 +24,7 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 ************************************************************************/
 
 #pragma once
+#include <cmath>
 const float SILENCE = 0.0001f;
 
 class ADSREnvelope
@@ -93,17 +94,14 @@ public:
 
     void setRelease(float normalisedRelease)
     {
-
         if (normalisedRelease < 1.0f) {
             releaseMultiplier = 0.75f; // extra fast release
         } else {
             releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * normalisedRelease));
         }
-
-
     }
 
-    void setSampleRate(float currentSampleRate)
+    void setSampleRate(const float currentSampleRate)
     {
         sampleRate = currentSampleRate;
         inverseSampleRate = 1.0f / currentSampleRate;

@@ -124,8 +124,8 @@ void Synth::noteOn(int note, int velocity)
     // float frequency = 440.0f * std::exp2(float(note - 69) + tune / 12.0f);
     // period = sampleRate / frequency;
 
-    // panning
-    voice.updatePanning();
+    // update panning and other parameters
+    voice.update();
 
     // oscillator 1
     auto period = calculatePeriod(note);
@@ -155,16 +155,22 @@ void Synth::noteOff(int note)
  */
 {
     if (voice.note == note) {
-        voice.release();
+        voice.noteOff();
     }
 }
 
 float Synth::calculatePeriod(int note) const
 {
-    // Calculate the period of the note based on its frequency.
-    // another magic number, this one is equal to log(2^-1/12)
+/**
+ * Calculates the period of a note based on its frequency.
+ *
+ * @param note The MIDI note number.
+ * @return The period of the note in samples.
+ */
+
+// another magic number, this one is equal to log(2^-1/12)
     float period = tune * std::exp(-0.05776226505f * float(note));
-    // Ensure the period is 6 samples or greater
+// Ensure the period is 6 samples or greater, other wise the BLIT is unstable
     while (period < 6.0f || (period * detune) < 6.0f) {period += period; }
     return period;
 }

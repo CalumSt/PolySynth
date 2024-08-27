@@ -34,38 +34,107 @@
 class Synth
 {
     public:
-      Synth();
+        /**
+         * @brief Default constructor.
+         */
+        Synth();
 
-      void allocateResources(double sampleRate,int samplesPerBlock);
-      void deallocateResources();
-      void reset();
-      void render(float** outputBuffers, int sampleCount);
-      void midiMessages(uint8_t data0,uint8_t data1,uint8_t data2);
+        /**
+         * @brief Allocates resources for the synthesizer.
+         * @param sampleRate The sample rate of the audio processor.
+         * @param samplesPerBlock The number of samples per block.
+         */
+        void allocateResources(double sampleRate, int samplesPerBlock);
 
-      Voice voice;
+        /**
+         * @brief Deallocates resources for the synthesizer.
+         */
+        void deallocateResources();
 
-      
-      float noiseMix;
+        /**
+         * @brief Resets the synthesizer to its default state.
+         */
+        void reset();
 
-      // ADSR parameters
-      float envDecay;
-      float envAttack;
-      float envSustain;
-      float envRelease;
+        /**
+         * @brief Renders audio output.
+         * @param outputBuffers The output buffers to render to.
+         * @param sampleCount The number of samples to render.
+         */
+        void render(float** outputBuffers, int sampleCount);
 
-      // Oscillator parameters
-      float oscMix;
-      float detune;
-      float oscFine;
-      
-      // tuning and pitch bend
-      float tune;
-      float pitchBend;
+        /**
+         * @brief Processes MIDI messages.
+         * @param data0 The first byte of the MIDI message.
+         * @param data1 The second byte of the MIDI message.
+         * @param data2 The third byte of the MIDI message.
+         */
+        void midiMessages(uint8_t data0, uint8_t data1, uint8_t data2);
+
+        /**
+         * @brief The voice object associated with this synthesizer.
+         */
+        Voice voice;
+
+        float noiseMix;
+
+        /**
+         * @brief The decay time of the envelope.
+         * @note Range: 0.0 (no decay) to 10.0 (maximum decay)
+         */
+        float envDecay;
+
+        /**
+         * @brief The attack time of the envelope.
+         * @note Range: 0.0 (no attack) to 10.0 (maximum attack)
+         */
+        float envAttack;
+
+        /**
+         * @brief The sustain level of the envelope.
+         * @note Range: 0.0 (no sustain) to 1.0 (maximum sustain)
+         */
+        float envSustain;
+
+        /**
+         * @brief The release time of the envelope.
+         * @note Range: 0.0 (no release) to 10.0 (maximum release)
+         */
+        float envRelease;
+
+        // Oscillator parameters
+        /**
+         * @brief The mix level of the oscillator.
+         * @note Range: 0.0 (no mix) to 1.0 (maximum mix)
+         */
+        float oscMix;
+        /**
+         * @brief The detune amount of the oscillator.
+         * @note Range: -1.0 (maximum detune) to 1.0 (maximum detune)
+         */
+        float detune;
+        /**
+         * @brief The fine tuning of the oscillator.
+         * @note Range: -1.0 (maximum fine tune) to 1.0 (maximum fine tune)
+         */
+        float oscFine;
+
+        // tuning and pitch bend
+        /**
+         * @brief The overall tuning of the synth.
+         * @note Range: -1.0 (maximum detune) to 1.0 (maximum detune)
+         */
+        float tune;
+        /**
+         * @brief The pitch bend amount of the synth.
+         * @note Range: -1.0 (maximum pitch bend) to 1.0 (maximum pitch bend)
+         */
+        float pitchBend;
 
     private:
-      float sampleRate;
-      Noise noise;
-      void noteOn(int note,int velocity);
-      void noteOff(int note);
-      float calculatePeriod(int note) const;
+        float sampleRate;
+        Noise noise;
+        void noteOn(int note,int velocity);
+        void noteOff(int note);
+        float calculatePeriod(int note) const;
 };

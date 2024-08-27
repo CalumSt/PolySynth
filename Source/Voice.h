@@ -28,52 +28,27 @@
 #include "SineOscillator.h"
 #include "SawtoothOscillator.h"
 #include "ADSREnvelope.h"
+#include <cmath>
+#include <algorithm>
 
-struct Voice
+class Voice
 {
-    int note;
-    int velocity;
-    SawtoothOscillator oscillator;
-    SawtoothOscillator oscillator2;
-    ADSREnvelope env;
-    float period;
+    public:
+        int note;
+        int velocity;
+        SawtoothOscillator oscillator;
+        SawtoothOscillator oscillator2;
+        ADSREnvelope env;
+        float period;
 
-    // panning
-    float panLeft, panRight;
+        // panning
+        float panLeft, panRight;
 
-    void reset()
-    {
-        note = 0;
-        velocity = 0;
-        env.reset();
+        // methods
 
-        panLeft = 0.707f;
-        panRight = 0.707f;
-    }
-
-    float render(float input)
-    {
-        // get the oscillator samples
-        // subtract and add noise input
-        // apply envelope
-        // TODO: replace samples and oscillators with arrays of nextSamples and Oscillators
-        auto nextSample = oscillator.nextSample();
-        auto nextSample2 = oscillator2.nextSample();
-
-        float envelopeSample = env.nextValue();
-        float outputSample = nextSample - nextSample2 + input;
-        return outputSample * envelopeSample;
-    }
-    
-    void release()
-    {
-        env.release();
-    }
-
-    void updatePanning()
-    {
-        float panning = std::clamp((note - 60.0f) / 24.0f, -1.0f, 1.0f); // notes outside this range are clamped
-        panLeft = std::sin(PI_OVER_FOUR * (1.0f - panning));
-        panRight = std::sin(PI_OVER_FOUR * (1.0f + panning));
-    }
+        void noteOn(int note, int velocity);
+        void noteOff();
+        void reset();
+        void update();
+        float render(float input);
 };

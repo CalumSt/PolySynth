@@ -11,6 +11,8 @@ set(This Tests)
 # ADD TEST FILES HERE
 set(SOURCES
     ADSREnvelope_test.cpp
+    Oscillator_test.cpp
+    Voice_test.cpp
 )
 # --------------------------------------------------------------------------
 

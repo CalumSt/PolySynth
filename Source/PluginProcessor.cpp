@@ -379,6 +379,7 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 void JX11AudioProcessor::update()
 {
     // updating ADSR TODO: tidy this up
+    // TODO: Go through and see what these are converting between, make it clear what the input and output should be, and move to the ADSR class.
     float sampleRate = float(getSampleRate());
     auto inverseSampleRate = 1.0f / sampleRate;
 

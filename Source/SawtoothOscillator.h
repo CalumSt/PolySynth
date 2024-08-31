@@ -48,6 +48,7 @@ class SawtoothOscillator : public Oscillator
             phase = 0.0f;
             inc = 0.0f;
             dc = 0.0f;
+            saw = 0.0f;
         }
 
         /**
@@ -61,39 +62,41 @@ class SawtoothOscillator : public Oscillator
         {
             float output = 0.0f;
             phase += inc;
-            if (period != 0.0f) {
-                // if phase goes over Pi/4, start a new impulse
-                if (phase <= PI_OVER_FOUR) {
-                    float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
-                    phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
-                    dc = 0.5f * amplitude / phaseMax; // calculate dc offset
-                    phaseMax *= PI;
-                    // update inc and phase member variables
-                    inc = phaseMax / halfPeriod;
-                    phase = -phase;
-                    // Calculate the sinc function output (avoid dividing by zero)
-                    if (phase*phase > 1e-9) {
-                        output = amplitude*sin(phase) / phase;
-                    } else {
-                        output = amplitude;
-                    };
-
-                } else { // If between peaks of impulses
-
-                    if (phase > phaseMax) { // invert increment and loop back through the sinc function
-                        phase = phaseMax + phaseMax - phase;
-                        inc = -inc;
-                    }
-                    // calculate the sinc function output - don't need to worry about divide by 0 here
-                    output = amplitude * sin(phase) / phase;
+            // if phase goes over Pi/4, start a new impulse
+            if (phase <= PI_OVER_FOUR) {
+                float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
+                phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
+                dc = 0.5f * amplitude / phaseMax; // calculate dc offset
+                phaseMax *= PI;
+                // update inc and phase member variables
+                inc = phaseMax / halfPeriod;
+                phase = -phase;
+                // Calculate the sinc function output (avoid dividing by zero)
+                if (phase*phase > 1e-9) {
+                    output = amplitude*sin(phase) / phase;
+                } else {
+                    output = amplitude;
                 };
-                // convert the BLIT into a saw wave with a leaky integrator (adding up inputs over time)
-                saw = saw * 0.997f + output - dc;
-            } else {
-                saw = -120.0f;
-            }
-            return saw;
+
+            } else { // If between peaks of impulses
+
+                if (phase > phaseMax) { // invert increment and loop back through the sinc function
+                    phase = phaseMax + phaseMax - phase;
+                    inc = -inc;
+                }
+                // calculate the sinc function output - don't need to worry about divide by 0 here
+                output = amplitude * sin(phase) / phase;
+            };
+            return output - dc;
         };
+
+    float render()
+    {
+        float sample = nextSample();
+        // convert the BLIT into a saw wave with a leaky integrator (adding up inputs over time)
+        saw = saw * 0.997f + sample;
+        return sample;
+    };
 
     private:
         float phase;

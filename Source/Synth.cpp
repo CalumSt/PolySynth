@@ -128,8 +128,11 @@ void Synth::noteOn(int note, int velocity)
     voice.update();
 
     // oscillator 1
-    auto period = calculatePeriod(note);
-    voice.period = period;
+    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+
+    // auto period = calculatePeriod(note);
+    voice.period = sampleRate / freq;
+
     voice.oscillator.amplitude = (velocity / 127.0f) * 0.5f;
     // voice.oscillator.reset();
 

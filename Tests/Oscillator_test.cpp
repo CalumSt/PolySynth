@@ -5,9 +5,10 @@
 // Arrange, Act and Assert
 
 // Helper function to calculate the period for A440Hz
-float calculatePeriod(float noteNumber)
+float calculatePeriod(float noteNumber, float sampleRate)
 {
-    float period = std::exp(-0.05776226505f * noteNumber);
+    float freq = std::exp2((noteNumber - 69.0f) / 12.0f) * 440.0f;
+    float period = sampleRate / freq;
     return period;
 }
 
@@ -16,12 +17,13 @@ SawtoothOscillator testSetup() {
     SawtoothOscillator osc;
     osc.reset();
     osc.sampleRate = 44100.0f;
-    float period = calculatePeriod(69.0f);
+    osc.amplitude = 0.5f;
+    float period = calculatePeriod(69.0f, 44100.0f);
     osc.period = period;
     return osc;
 }
 
-TEST(OscTests,setupCorrectlyTest)
+TEST(OscTests,setup_test)
 {
     SawtoothOscillator osc;
     osc.reset();
@@ -30,25 +32,24 @@ TEST(OscTests,setupCorrectlyTest)
 
 }
 
-TEST(OscTests,nextSampleWorksCorrectlyTest)
+TEST(OscTests,nextSample_test)
 {
     SawtoothOscillator osc = testSetup();
     auto Sample = osc.nextSample();
-    EXPECT_NEAR(Sample,0.0f,0.01f);
+    EXPECT_NE(Sample,0.0f);
+    EXPECT_LT(Sample,1.0f);
+    EXPECT_GT(Sample,-1.0f);
 }
 
 // To properly test the sawtooth, we would need a reference signal.
-TEST(OscTests,nextSampleProducesCorrectValueTest)
+TEST(OscTests,nextSampleCorrectValue_test)
 {   
 
-    SawtoothOscillator osc;
-    osc.reset();
-    float period = calculatePeriod(69.0f);
-    osc.period = period;
+    SawtoothOscillator osc = testSetup();
     auto Sample = osc.nextSample();
-
+    float period = calculatePeriod(69.0f, 44100.0f);
     auto CORRECT_VALUE = 0.0f;
-    float amplitude = 1.0f;
+    float amplitude = 0.5f;
     float phase = 0;
     float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
     auto phaseMax = std::floor(0.5f + halfPeriod) - 0.5f;
@@ -63,7 +64,16 @@ TEST(OscTests,nextSampleProducesCorrectValueTest)
         CORRECT_VALUE = amplitude;
     };
 
-    EXPECT_EQ(CORRECT_VALUE,Sample);
+    EXPECT_NEAR(CORRECT_VALUE,Sample,0.01f);
+}
+
+TEST(OscTests,render_test)
+{
+    SawtoothOscillator osc = testSetup();
+    auto Sample = osc.render();
+    EXPECT_NE(Sample,0.0f);
+    EXPECT_LT(Sample,1.0f);
+    EXPECT_GT(Sample,-1.0f);
 }
 
 

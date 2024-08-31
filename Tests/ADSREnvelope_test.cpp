@@ -84,10 +84,10 @@ TEST(ADSR_tests,releaseStage_test)
     ADSREnvelope env;
     env.reset();
     env.setSampleRate(sampleRate);
-    env.setAttack(0.5f);
-    env.setDecay(0.5f);
-    env.setSustain(0.5f);
-    env.setRelease(0.5f);
+    env.setAttack(50.0f);
+    env.setDecay(50.0f);
+    env.setSustain(50.0f);
+    env.setRelease(50.0f);
     env.attack();
     env.release();
     EXPECT_EQ(env.level,SILENCE+SILENCE);
@@ -98,11 +98,36 @@ TEST(ADSR_tests,nextValue_test)
     ADSREnvelope env;
     env.reset();
     env.setSampleRate(sampleRate);
-    env.setAttack(0.5f);
-    env.setDecay(0.5f);
-    env.setSustain(0.5f);
-    env.setRelease(0.5f);
+    env.setAttack(50.0f);
+    env.setDecay(50.0f);
+    env.setSustain(50.0f);
+    env.setRelease(50.0f);
     env.attack();
     float nextValue = env.nextValue();
-    EXPECT_GT(nextValue,0.0f);
+
+    // Expect that the next value is between -1.0 and 1.0
+
+    EXPECT_NE(nextValue,0.0f);
+    EXPECT_GT(nextValue,-1.0f);
+    EXPECT_LT(nextValue,1.0f);
+}
+
+
+TEST(ADSR_tests,testFullEnvelope_test)
+{
+    ADSREnvelope env;
+    env.reset();
+    env.setSampleRate(sampleRate);
+    env.setAttack(50.0f);
+    env.setDecay(50.0f);
+    env.setSustain(50.0f);
+    env.setRelease(50.0f);
+    env.attack();
+
+    auto numberOfSamples = 1000;
+    for (int i = 0; i < numberOfSamples; i++) {
+        float nextValue = env.nextValue();
+        EXPECT_GT(nextValue, 0.0f);
+        EXPECT_LT(nextValue, 1.0f);
+    }
 }

@@ -1,6 +1,17 @@
 #pragma once
 #include <gtest/gtest.h>
+#include <stdio.h>
 #include "Voice.h"
+
+// helper functions
+float calculatePeriodFromNote(float noteNumber, float sampleRate)
+{
+    float freq = std::exp2((noteNumber - 69.0f) / 12.0f) * 440.0f;
+    float period = sampleRate / freq;
+    return period;
+}
+
+// Helper function to setup the oscillator
 
 // Arrange, Act and Assert
 TEST(VoiceTests, Constructor_test) {
@@ -42,10 +53,22 @@ TEST(VoiceTests,render_test) {
     voice.panLeft = 0.5f;
     voice.panRight = 0.5f;
 
-    voice.env.setAttack(0.5f);
-    voice.env.setDecay(0.5f);
-    voice.env.setSustain(0.5f);
-    voice.env.setRelease(0.5f);
+    voice.setSampleRate(44100.0f);
+    voice.env.setAttack(50.0f);
+    voice.env.setDecay(50.0f);
+    voice.env.setSustain(50.0f);
+    voice.env.setRelease(50.0f);
+    voice.env.attack();
+
+    voice.oscillator.amplitude = 0.5f;
+    voice.oscillator2.amplitude = 0.5f;
+    float period = calculatePeriodFromNote(60.0f, 44100.0f);
+    std::cout << period;
+    voice.oscillator.period = period;
+    voice.oscillator2.period = period;
+
+    auto sample = voice.render(0.5f);
+    EXPECT_GT(sample, 0.0f);
 
     float numberOfSamples = 1000;
     for (int i = 0; i < numberOfSamples; i++) {

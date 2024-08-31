@@ -37,7 +37,8 @@ public:
      */
     float nextValue()
     {
-        level *= multiplier *(level - target) + target;
+        // a one pole for smoothing
+        level = multiplier *(level - target) + target;
 
         if (level + target > 3.0f)
         {
@@ -52,6 +53,11 @@ public:
         level = 0.0f;
         target = 0.0f;
         multiplier = 0.0f;
+
+        attackMultiplier = 0.0f;
+        decayMultiplier = 0.0f;
+        sustainLevel = 1.0f;
+        releaseMultiplier = 1.0f;
     }
 
     void release()

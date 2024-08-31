@@ -51,4 +51,5 @@ class Voice
         void reset();
         void update();
         float render(float input);
+        void setSampleRate(float sampleRate);
 };

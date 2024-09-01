@@ -25,6 +25,7 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 
 #pragma once
 #include <cmath>
+#include "JuceHeader.h"
 const float SILENCE = 0.0001f;
 
 class ADSREnvelope
@@ -45,6 +46,7 @@ public:
             multiplier = decayMultiplier;
             target = sustainLevel;
         }
+
         return level;   
     }
 
@@ -58,6 +60,9 @@ public:
         decayMultiplier = 0.0f;
         sustainLevel = 1.0f;
         releaseMultiplier = 1.0f;
+
+        inverseSampleRate = 0.0f;
+        sampleRate = 0.0f;
     }
 
     void release()
@@ -90,7 +95,7 @@ public:
 
     void setDecay(float normalisedDecay)
     {
-        decayMultiplier = std::exp(normalisedDecay);
+        decayMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * normalisedDecay));
     }
 
     void setSustain(float normalisedSustain)
@@ -105,6 +110,8 @@ public:
         } else {
             releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * normalisedRelease));
         }
+
+
     }
 
     void setSampleRate(const float currentSampleRate)
@@ -113,18 +120,18 @@ public:
         inverseSampleRate = 1.0f / currentSampleRate;
     }
 
-    float level; /**<The current level of the envelope. */
-    float sampleRate; /**<The sample rate of the signal the envelope is being applied to */
+    float level = 0.0f; /**<The current level of the envelope. */
+    float sampleRate = 44100.0f; /**<The sample rate of the signal the envelope is being applied to */
 
-    // ADSR
-    float attackMultiplier;
-    float decayMultiplier;
-    float sustainLevel;
-    float releaseMultiplier;
+    // ADSR 
+    float attackMultiplier = 0.0f;
+    float decayMultiplier = 0.0f;
+    float sustainLevel = 1.0f;
+    float releaseMultiplier = 0.0f;
 
 private:
-    float multiplier; /**<The multiplier used to calculate the next value. */
-    float target; /**<The target value of the envelope. */
-    float inverseSampleRate;
+    float multiplier = 0.0f; /**<The multiplier used to calculate the next value. */
+    float target = 0.0f; /**<The target value of the envelope. */
+    float inverseSampleRate = 1.0f / sampleRate;
 
 };

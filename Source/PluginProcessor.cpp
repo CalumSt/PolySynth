@@ -381,27 +381,14 @@ void JX11AudioProcessor::update()
     // updating ADSR TODO: tidy this up
     // TODO: Go through and see what these are converting between, make it clear what the input and output should be, and move to the ADSR class.
     float sampleRate = float(getSampleRate());
-    auto inverseSampleRate = 1.0f / sampleRate;
+    
+    synth.voice.env.setSampleRate(sampleRate);
 
-    synth.voice.env.attackMultiplier = 
-        std::exp(
-            -inverseSampleRate * std::exp(
-            5.5f - 0.075f * parameterTree.getRawParameterValue("envAttack")->load()
-            ));
+    synth.voice.env.setAttack(parameterTree.getRawParameterValue("envAttack")->load());
+    synth.voice.env.setDecay(parameterTree.getRawParameterValue("envDecay")->load());
+    synth.voice.env.setSustain(parameterTree.getRawParameterValue("envSustain")->load() / 100.0f);
+    synth.voice.env.setRelease(parameterTree.getRawParameterValue("envRelease")->load());
 
-    synth.voice.env.decayMultiplier = 
-        std::exp(parameterTree.getRawParameterValue("envDecay")->load());
-
-    synth.voice.env.sustainLevel = parameterTree.getRawParameterValue("envSustain")->load() / 100.0f;
-
-    float envRelease = parameterTree.getRawParameterValue("envRelease")->load();
-
-    if (envRelease < 1.0f) {
-        synth.voice.env.releaseMultiplier = 0.75f; // extra fast release
-    } else {
-        synth.voice.env.releaseMultiplier = std::exp(-inverseSampleRate * std::exp(
-            5.5f - 0.075f * envRelease));
-    }
 
     // Oscillators
     synth.oscMix = parameterTree.getRawParameterValue("oscMix")->load() / 100.0f;

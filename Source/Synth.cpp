@@ -67,6 +67,7 @@ void Synth::render(float** outputBuffers, int sampleCount)
         voice.env.reset();
     }
 
+
     protectYourEars(outputBufferLeft,sampleCount);
     protectYourEars(outputBufferRight,sampleCount);
 }
@@ -142,10 +143,14 @@ void Synth::noteOn(int note, int velocity)
 
     // ADSR updates
     // When note is hit, set parameters for initial attack
+
+    // These parameters are unitialised when set
+    /*
     voice.env.attackMultiplier = envAttack;
     voice.env.decayMultiplier = envDecay;
     voice.env.sustainLevel = envSustain;
     voice.env.releaseMultiplier = envRelease;
+    */
     voice.env.attack();
 
 }

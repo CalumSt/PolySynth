@@ -16,7 +16,7 @@ float Voice::render(float input)
     auto nextSample2 = oscillator2.render();
 
     float envelopeSample = env.nextValue();
-    float outputSample = nextSample + input;
+    float outputSample = nextSample + nextSample2 + input;
     return outputSample * envelopeSample;
 }
 

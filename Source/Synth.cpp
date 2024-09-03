@@ -24,7 +24,11 @@ void Synth::deallocateResources()
 
 void Synth::reset()
 {
-    voice.reset();
+    for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex) 
+    {
+        voices[voiceIndex].reset()
+    }
+
     noise.reset();
     pitchBend = 1.0f; // Give this a value as it isn't received if the user doesn't touch the pitch bend
 }
@@ -35,8 +39,15 @@ void Synth::render(float** outputBuffers, int sampleCount)
     float* outputBufferRight = outputBuffers[1];
 
     // set up oscillator periods
-    voice.oscillator.period = voice.period * pitchBend;
-    voice.oscillator2.period = voice.period * detune;
+    for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+    {
+        Voice& voice = voices[voiceIndex];
+        if (voice.env.isActive()) 
+        {
+            voice.oscillator.period = voice.period * pitchBend;
+            voice.oscillator2.period = voice.period * detune;
+        }
+    }
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
         // get next noise sample
@@ -46,12 +57,16 @@ void Synth::render(float** outputBuffers, int sampleCount)
         float outputSampleLeft = 0.0f;
         auto outputSampleRight = outputSampleLeft;
 
-        if (voice.env.isActive()) 
+        for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
         {
-            // get next oscillator samples and pan
-            float outputSample = voice.render(noiseSample);
-            outputSampleLeft += outputSample * voice.panLeft;
-            outputSampleRight += outputSample * voice.panRight;
+            Voice& voice = voices[voiceIndex];
+            if (voice.env.isActive()) 
+            {
+                // get next oscillator samples and pan
+                float outputSample = voice.render(noiseSample);
+                outputSampleLeft += outputSample * voice.panLeft;
+                outputSampleRight += outputSample * voice.panRight;
+            }
         }
          // copy output to each channel, only applying to left if we're in mono
         if (outputBufferRight != nullptr) 
@@ -62,10 +77,13 @@ void Synth::render(float** outputBuffers, int sampleCount)
             outputBufferLeft[sample] = (outputSampleLeft + outputSampleRight) * 0.5f;
         }
     }
-
-    if (!voice.env.isActive()) {
-        voice.env.reset();
-    }
+    for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+        {
+            Voice& voice = voices[voiceIndex];
+            if (!voice.env.isActive()) {
+                voice.env.reset();
+            }
+        }
 
 
     protectYourEars(outputBufferLeft,sampleCount);
@@ -129,7 +147,7 @@ void Synth::noteOn(int note, int velocity)
     voice.update();
 
     // oscillator 1
-    float freq = 440.0f * std::exp2(float(note - 69) / 12.0f);
+    float freq = 440.0f * std::exp2((float(note - 69) m + tune) / 12.0f);
 
     // auto period = calculatePeriod(note);
     voice.period = sampleRate / freq;

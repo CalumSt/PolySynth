@@ -26,7 +26,7 @@ void Synth::reset()
 {
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex) 
     {
-        voices[voiceIndex].reset()
+        voices[voiceIndex].reset();
     }
 
     noise.reset();
@@ -132,13 +132,26 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
 }
 
 void Synth::noteOn(int note, int velocity)
-/*
+/** 
  * Turns on a note on the synthesizer.
  *
  * @param note The MIDI note number to turn on.
  * @param velocity The velocity (loudness) of the note, ranging from 0 to 127.
  */
 {
+    startVoice(0, note, velocity);
+}
+
+void Synth::startVoice(int voiceIndex, int note, int velocity)
+/** 
+ * Sets up a specific voice for playing.
+ *
+ * @param voiceIndex the index of the voice to set up.
+ * @param note The MIDI note number to turn on.
+ * @param velocity The velocity (loudness) of the note, ranging from 0 to 127.
+ */
+{
+    Voice& voice = voices[voiceIndex];
     voice.note = note;
     // float frequency = 440.0f * std::exp2(float(note - 69) + tune / 12.0f);
     // period = sampleRate / frequency;
@@ -147,7 +160,7 @@ void Synth::noteOn(int note, int velocity)
     voice.update();
 
     // oscillator 1
-    float freq = 440.0f * std::exp2((float(note - 69) m + tune) / 12.0f);
+    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
 
     // auto period = calculatePeriod(note);
     voice.period = sampleRate / freq;
@@ -160,17 +173,13 @@ void Synth::noteOn(int note, int velocity)
     // voice.oscillator2.reset();
 
     // ADSR updates
-    // When note is hit, set parameters for initial attack
-
-    // These parameters are unitialised when set
-    /*
+    // When note is hit, set parameters for initial attack    
     voice.env.attackMultiplier = envAttack;
     voice.env.decayMultiplier = envDecay;
     voice.env.sustainLevel = envSustain;
     voice.env.releaseMultiplier = envRelease;
-    */
+    
     voice.env.attack();
-
 }
 
 void Synth::noteOff(int note)
@@ -180,6 +189,7 @@ void Synth::noteOff(int note)
  * @param note The MIDI note number to turn off.
  */
 {
+    Voice& voice = voices[0];
     if (voice.note == note) {
         voice.noteOff();
     }
@@ -199,4 +209,30 @@ float Synth::calculatePeriod(int note) const
 // Ensure the period is 6 samples or greater, other wise the BLIT is unstable
     while (period < 6.0f || (period * detune) < 6.0f) {period += period; }
     return period;
+}
+
+void Synth::setAttack(float attackPercentage)
+{
+    envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * attackPercentage));
+}
+
+void Synth::setDecay(float decayPercentage)
+{
+    envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * decayPercentage));
+}
+
+void Synth::setSustain(float sustainPercentage)
+{
+    envSustain = sustainPercentage / 100.0f;
+}
+
+void Synth::setRelease(float releasePercentage)
+{
+    if (releasePercentage < 1.0f) {
+        envRelease = 0.75f; // extra fast release
+    } else {
+        envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * releasePercentage));
+    }
+
+
 }

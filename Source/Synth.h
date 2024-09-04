@@ -34,6 +34,9 @@
 class Synth
 {
     public:
+    
+        static constexpr int MAX_VOICES = 8;
+
         /**
          * @brief Default constructor.
          */
@@ -72,9 +75,11 @@ class Synth
         void midiMessages(uint8_t data0, uint8_t data1, uint8_t data2);
 
         /**
-         * @brief The voice object associated with this synthesizer.
+         * @brief The voices used to hold note, oscillators and evelopes
          */
-        Voice voice;
+        std::array<Voice, MAX_VOICES> voices;
+
+        int numVoices;
 
         float noiseMix;
 
@@ -131,10 +136,19 @@ class Synth
          */
         float pitchBend;
 
+        // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
+
+        void setAttack(float attackPercentage);
+        void setDecay(float decayPercentage);
+        void setSustain(float sustainPercentage);       
+        void setRelease(float releasePercentage);
+
     private:
         float sampleRate;
+        float inverseSampleRate;
         Noise noise;
         void noteOn(int note,int velocity);
+        void startVoice(int voiceIndex, int note, int velocity);
         void noteOff(int note);
         float calculatePeriod(int note) const;
 };

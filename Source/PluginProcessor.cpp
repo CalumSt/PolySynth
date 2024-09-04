@@ -379,20 +379,18 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 void JX11AudioProcessor::update()
 {
     // updating ADSR TODO: tidy this up
-    // TODO: Go through and see what these are converting between, make it clear what the input and output should be, and move to the ADSR class.
+    // TODO: Set this up for all voices
     float sampleRate = float(getSampleRate());
-    
+    // This needs some thought as to how to handle it - we have up to 8 voices now
     synth.voice.env.setSampleRate(sampleRate);
-
-    synth.voice.env.setAttack(parameterTree.getRawParameterValue("envAttack")->load());
-    synth.voice.env.setDecay(parameterTree.getRawParameterValue("envDecay")->load());
-    synth.voice.env.setSustain(parameterTree.getRawParameterValue("envSustain")->load() / 100.0f);
-    synth.voice.env.setRelease(parameterTree.getRawParameterValue("envRelease")->load());
+    synth.setAttack(parameterTree.getRawParameterValue("envAttack")->load());
+    synth.setDecay(parameterTree.getRawParameterValue("envDecay")->load());
+    synth.setSustain(parameterTree.getRawParameterValue("envSustain")->load());
+    synth.setRelease(parameterTree.getRawParameterValue("envRelease")->load());
 
 
     // Oscillators
     synth.oscMix = parameterTree.getRawParameterValue("oscMix")->load() / 100.0f;
-
     float semi = parameterTree.getRawParameterValue("oscTune")->load();
     float cent = parameterTree.getRawParameterValue("oscFine")->load();
     synth.detune = std::pow(1.059463094359f, -semi - 0.01f * cent);
@@ -403,6 +401,10 @@ void JX11AudioProcessor::update()
     float tuning = parameterTree.getRawParameterValue("tuning")->load();
     float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
+
+    // Poly/Mono
+    auto polyMode = parameterTree.getRawParameterValue("polyMode")->load();
+    synth.numVoices = (polyMode == 0) ? 1 : Synth::MAX_VOICES;
 
     // get the pointer to the atomic and load it, then scale it
     float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;

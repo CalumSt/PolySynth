@@ -381,12 +381,13 @@ void JX11AudioProcessor::update()
     // updating ADSR TODO: tidy this up
     // TODO: Set this up for all voices
     float sampleRate = float(getSampleRate());
-    // This needs some thought as to how to handle it - we have up to 8 voices now
-    synth.voice.env.setSampleRate(sampleRate);
-    synth.setAttack(parameterTree.getRawParameterValue("envAttack")->load());
-    synth.setDecay(parameterTree.getRawParameterValue("envDecay")->load());
-    synth.setSustain(parameterTree.getRawParameterValue("envSustain")->load());
-    synth.setRelease(parameterTree.getRawParameterValue("envRelease")->load());
+
+    synth.setSampleRate(sampleRate);
+    float attackMultiplier = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
+    synth.envAttack = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
+    synth.envAttack = synth.calculateDecayFromPercentage(parameterTree.getRawParameterValue("envDecay")->load());
+    synth.envSustain = synth.calculateSustainFromPercentage(parameterTree.getRawParameterValue("envSustain")->load());
+    synth.envRelease = synth.calculateReleaseFromPercentage(parameterTree.getRawParameterValue("envRelease")->load());
 
 
     // Oscillators

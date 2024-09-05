@@ -61,8 +61,8 @@ public:
         sustainLevel = 1.0f;
         releaseMultiplier = 1.0f;
 
-        inverseSampleRate = 0.0f;
-        sampleRate = 0.0f;
+        inverseSampleRate = 1.0f / 44100.0f;
+        sampleRate = 44100.0f;
     }
 
     void release()

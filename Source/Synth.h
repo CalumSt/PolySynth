@@ -137,11 +137,13 @@ class Synth
         float pitchBend;
 
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
+        
+        float calculateAttackFromPercentage(float attackPercentage);
+        float calculateDecayFromPercentage(float decayPercentage);
+        float calculateSustainFromPercentage(float sustainPercentage);       
+        float calculateReleaseFromPercentage(float releasePercentage);
 
-        void setAttack(float attackPercentage);
-        void setDecay(float decayPercentage);
-        void setSustain(float sustainPercentage);       
-        void setRelease(float releasePercentage);
+        void setSampleRate(float SampleRate);
 
     private:
         float sampleRate;

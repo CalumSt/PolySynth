@@ -131,6 +131,19 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
     }
 }
 
+void Synth::setSampleRate(float sampleRate)
+{
+    this->sampleRate = sampleRate;
+    this->inverseSampleRate = 1.0f / sampleRate;
+
+        for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+        {
+            Voice& voice = voices[voiceIndex];
+            voice.setSampleRate(sampleRate);
+        }
+}
+
+
 void Synth::noteOn(int note, int velocity)
 /** 
  * Turns on a note on the synthesizer.
@@ -211,28 +224,32 @@ float Synth::calculatePeriod(int note) const
     return period;
 }
 
-void Synth::setAttack(float attackPercentage)
+float Synth::calculateAttackFromPercentage(float attackPercentage)
 {
-    envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * attackPercentage));
+   float envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * attackPercentage));
+   return envAttack;
 }
 
-void Synth::setDecay(float decayPercentage)
+float Synth::calculateDecayFromPercentage(float decayPercentage)
 {
-    envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * decayPercentage));
+    float envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * decayPercentage));
+    return envDecay;
 }
 
-void Synth::setSustain(float sustainPercentage)
+float Synth::calculateSustainFromPercentage(float sustainPercentage)
 {
-    envSustain = sustainPercentage / 100.0f;
+    float envSustain = sustainPercentage / 100.0f;
+    return envSustain;
 }
 
-void Synth::setRelease(float releasePercentage)
-{
+float Synth::calculateReleaseFromPercentage(float releasePercentage)
+{   
+    float envRelease = 0.0f;
     if (releasePercentage < 1.0f) {
         envRelease = 0.75f; // extra fast release
     } else {
         envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * releasePercentage));
     }
 
-
+    return envRelease;
 }

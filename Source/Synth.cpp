@@ -42,11 +42,11 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
     {
         Voice& voice = voices[voiceIndex];
-        if (voice.env.isActive()) 
-        {
-            voice.oscillator.period = voice.period * pitchBend;
-            voice.oscillator2.period = voice.period * detune;
-        }
+        // if (voice.env.isActive()) 
+        
+        voice.oscillator.period = voice.period * pitchBend;
+        voice.oscillator2.period = voice.period * detune;
+        
     }
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
@@ -166,8 +166,6 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
 {
     Voice& voice = voices[voiceIndex];
     voice.note = note;
-    // float frequency = 440.0f * std::exp2(float(note - 69) + tune / 12.0f);
-    // period = sampleRate / frequency;
 
     // update panning and other parameters
     voice.update();

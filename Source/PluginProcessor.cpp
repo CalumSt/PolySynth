@@ -385,7 +385,7 @@ void JX11AudioProcessor::update()
     synth.setSampleRate(sampleRate);
     float attackMultiplier = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
     synth.envAttack = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
-    synth.envAttack = synth.calculateDecayFromPercentage(parameterTree.getRawParameterValue("envDecay")->load());
+    synth.envDecay = synth.calculateDecayFromPercentage(parameterTree.getRawParameterValue("envDecay")->load());
     synth.envSustain = synth.calculateSustainFromPercentage(parameterTree.getRawParameterValue("envSustain")->load());
     synth.envRelease = synth.calculateReleaseFromPercentage(parameterTree.getRawParameterValue("envRelease")->load());
 
@@ -400,9 +400,13 @@ void JX11AudioProcessor::update()
     // Synth tuning
     float octave = parameterTree.getRawParameterValue("octave")->load();
     float tuning = parameterTree.getRawParameterValue("tuning")->load();
+
+    synth.tune = octave * 12.0f + tuning / 100.0f;
+
+    /* This is for tune in samples
     float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
-
+    */
     // Poly/Mono
     auto polyMode = parameterTree.getRawParameterValue("polyMode")->load();
     synth.numVoices = (polyMode == 0) ? 1 : Synth::MAX_VOICES;

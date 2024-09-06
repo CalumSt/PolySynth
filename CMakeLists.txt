@@ -21,6 +21,8 @@ project(${PROJECT_NAME} VERSION 0.1)
 
 add_subdirectory(Libs/JUCE)
 
+add_subdirectory(Libs/melatonin_inspector)
+
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
@@ -57,6 +59,7 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
+        melatonin_inspector
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags

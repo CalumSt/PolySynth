@@ -7,3 +7,7 @@
 	path = Libs/JUCE
 	url = https://github.com/juce-framework/JUCE/
 	branch = develop
+[submodule "Libs/melatonin_inspector"]
+	path = Libs/melatonin_inspector
+	url = https://github.com/sudara/melatonin_inspector.git
+	branch = main

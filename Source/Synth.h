@@ -149,6 +149,7 @@ class Synth
         float sampleRate;
         float inverseSampleRate;
         Noise noise;
+        int findFreeVoice() const;
         void noteOn(int note,int velocity);
         void startVoice(int voiceIndex, int note, int velocity);
         void noteOff(int note);

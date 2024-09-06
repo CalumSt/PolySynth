@@ -143,6 +143,27 @@ void Synth::setSampleRate(float sampleRate)
         }
 }
 
+int Synth::findFreeVoice() const
+{
+    /**
+     * Finds a free voice in the synthesizer.
+     *
+     * This algorithm iterates through all voices and returns the index of the first voice that is not active or has finished its attack phase and is at the lowest level.
+     *
+     * @return The index of the free voice.
+     */
+    int voice = 0;
+    float l = 100.0f;
+
+    for (int i = 0; i < MAX_VOICES; ++i)
+    { 
+        if ((!voices[i].env.isActive() || voices[i].env.level < l) && !voices[i].env.isInAttack()) {
+            l = voices[i].env.level;
+            voice = i;
+        }
+    }
+    return voice;
+}
 
 void Synth::noteOn(int note, int velocity)
 /** 
@@ -152,7 +173,11 @@ void Synth::noteOn(int note, int velocity)
  * @param velocity The velocity (loudness) of the note, ranging from 0 to 127.
  */
 {
-    startVoice(0, note, velocity);
+    int voice = 0;
+    if (numVoices > 1) {
+        voice = findFreeVoice();
+    }
+    startVoice(voice, note, velocity);
 }
 
 void Synth::startVoice(int voiceIndex, int note, int velocity)
@@ -200,9 +225,13 @@ void Synth::noteOff(int note)
  * @param note The MIDI note number to turn off.
  */
 {
-    Voice& voice = voices[0];
-    if (voice.note == note) {
-        voice.noteOff();
+    for (int voice = 0; voice < numVoices; ++voice) 
+    {
+        if (voices[voice].note == note) 
+        {
+            voices[voice].noteOff();
+            voices[voice].note = 0;
+        }
     }
 }
 

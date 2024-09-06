@@ -25,7 +25,6 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 
 #pragma once
 #include <cmath>
-#include "JuceHeader.h"
 const float SILENCE = 0.0001f;
 
 class ADSREnvelope

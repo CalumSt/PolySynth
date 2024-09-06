@@ -27,8 +27,8 @@ TEST(ADSR_tests,setAttack_test)
     ADSREnvelope env;
     env.reset();
     env.setSampleRate(sampleRate);
-    env.setAttack(0.5f);
-    auto CORRECT_VALUE = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * 0.5f));
+    env.setAttack(50.0f);
+    auto CORRECT_VALUE = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * 50.0f));
     EXPECT_EQ(env.attackMultiplier, CORRECT_VALUE);
 }
 
@@ -38,8 +38,8 @@ TEST(ADSR_tests,setDecay_test)
     ADSREnvelope env;
     env.reset();
     env.setSampleRate(sampleRate);
-    env.setDecay(0.5f);
-    auto CORRECT_VALUE = std::exp(0.5f);
+    env.setDecay(50.0f);
+    auto CORRECT_VALUE = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * 50.0f));
     EXPECT_EQ(env.decayMultiplier, CORRECT_VALUE);
 
 }

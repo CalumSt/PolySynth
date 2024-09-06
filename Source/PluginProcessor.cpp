@@ -369,7 +369,7 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
     // add offset to Pointer
     outputBuffers[0] = buffer.getWritePointer(0) + bufferOffset;
     // If stereo, write to 2nd channel
-    if (getTotalNumInputChannels() > 1) {
+    if (getTotalNumOutputChannels() > 1) {
         outputBuffers[1] = buffer.getWritePointer(1) + bufferOffset;
     }
     // TODO: remove raw pointers and replace with JuceAudioBuffer

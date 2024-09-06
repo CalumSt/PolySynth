@@ -13,6 +13,7 @@ set(SOURCES
     ADSREnvelope_test.cpp
     Oscillator_test.cpp
     Voice_test.cpp
+    Synth_test.cpp
 )
 # --------------------------------------------------------------------------
 
@@ -30,7 +31,13 @@ target_include_directories(${PROJECT_NAME}
     )    
 # --------------------------------------------------------------------------
     
-target_link_libraries(${PROJECT_NAME} PUBLIC
+target_link_libraries(${PROJECT_NAME} 
+PRIVATE
+    juce::juce_audio_utils
+PUBLIC
+    juce::juce_recommended_config_flags
+    juce::juce_recommended_lto_flags
+    juce::juce_recommended_warning_flags    
     JX11
     GTest::gtest_main)
 

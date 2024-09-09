@@ -31,6 +31,7 @@ void Synth::reset()
 
     noise.reset();
     pitchBend = 1.0f; // Give this a value as it isn't received if the user doesn't touch the pitch bend
+    sustainPedalPressed = false;
 }
 // TODO: Get descriptions for these inputs
 void Synth::render(float** outputBuffers, int sampleCount)
@@ -66,6 +67,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
                 float outputSample = voice.render(noiseSample);
                 outputSampleLeft += outputSample * voice.panLeft;
                 outputSampleRight += outputSample * voice.panRight;
+
+                outputSampleLeft *= outputLevel;
+                outputSampleRight *= outputLevel;
             }
         }
          // copy output to each channel, only applying to left if we're in mono
@@ -127,6 +131,11 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
             pitchBend = std::exp(-0.000014102f * float(data1 + 128 * data2 - 8192));
             // magic number: 0.000014102 = log(2^(-2/8192)/12)
             // pitch bend takes values between 0.89 and 1.12
+            break;
+        
+        case 0xB0:
+        // sustain pedal message
+            controlChange(data1,data2);
             break;
     }
 }
@@ -196,12 +205,12 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.update();
 
     // oscillator 1
-    float freq = 440.0f * std::exp2((float(note - 69) + tune) / 12.0f);
-
-    // auto period = calculatePeriod(note);
-    voice.period = sampleRate / freq;
-
-    voice.oscillator.amplitude = (velocity / 127.0f) * 0.5f;
+    // float freq = 440.0f * std::exp2((float(note - 69) + tune + ANALOG * float(voiceIndex)) / 12.0f);
+    // voice.period = sampleRate / freq;
+    voice.period = calculatePeriod(voiceIndex, note);
+    
+    volumeTrim = 0.0008f * (3.2f - oscMix - 25.0f * noiseMix) * 1.5f;
+    voice.oscillator.amplitude = volumeTrim * velocity;
     // voice.oscillator.reset();
 
     // oscillator 2
@@ -227,7 +236,10 @@ void Synth::noteOff(int note)
 {
     for (int voice = 0; voice < numVoices; ++voice) 
     {
-        if (voices[voice].note == note) 
+        if (voices[voice].note == note && sustainPedalPressed)
+        {
+            voices[voice].note = SUSTAIN;
+        } else if (voices[voice].note == note) 
         {
             voices[voice].noteOff();
             voices[voice].note = 0;
@@ -235,7 +247,34 @@ void Synth::noteOff(int note)
     }
 }
 
-float Synth::calculatePeriod(int note) const
+void Synth::controlChange(uint8_t data1, uint8_t data2)
+{
+    switch (data1) 
+    {
+        case 0x40:
+            sustainPedalPressed = (data2 >= 64);
+
+            if (!sustainPedalPressed)
+            {
+                noteOff(SUSTAIN);
+            }
+             
+            break;
+
+        default:
+            // reset all voices and sustain pedal when the PANIC! message is received
+            if (data1 >= 0x78) {
+                for (int voice = 0; voice < numVoices; ++voice) {
+                    voices[voice].reset();
+                }
+                sustainPedalPressed = false;
+            }
+            break;
+    }
+
+}
+
+float Synth::calculatePeriod(int voiceIndex, int note) const
 {
 /**
  * Calculates the period of a note based on its frequency.
@@ -245,7 +284,8 @@ float Synth::calculatePeriod(int note) const
  */
 
 // another magic number, this one is equal to log(2^-1/12)
-    float period = tune * std::exp(-0.05776226505f * float(note));
+// This causes a loop if period = 0.
+    float period = tune * std::exp(-0.05776226505f * float(note) + ANALOG * float(voiceIndex));
 // Ensure the period is 6 samples or greater, other wise the BLIT is unstable
     while (period < 6.0f || (period * detune) < 6.0f) {period += period; }
     return period;

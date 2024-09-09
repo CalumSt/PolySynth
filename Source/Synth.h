@@ -35,7 +35,9 @@ class Synth
 {
     public:
     
-        static constexpr int MAX_VOICES = 8;
+        static constexpr int MAX_VOICES = 8; // number of voices
+        static constexpr float ANALOG = 0.002f; // Analog oscillator drift
+        static const int SUSTAIN = -1;
 
         /**
          * @brief Default constructor.
@@ -78,6 +80,12 @@ class Synth
          * @brief The voices used to hold note, oscillators and evelopes
          */
         std::array<Voice, MAX_VOICES> voices;
+
+        /**
+         * @brief The output level multiplier of the synth..
+         * @note Range: 0.0 (no decay) to 1.0 (maximum decay)
+         */
+        float outputLevel;
 
         int numVoices;
 
@@ -136,6 +144,11 @@ class Synth
          */
         float pitchBend;
 
+        /**
+         * @brief The automatic volume trim applied to the output
+         */
+        float volumeTrim;
+
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
         float calculateAttackFromPercentage(float attackPercentage);
@@ -148,10 +161,12 @@ class Synth
     private:
         float sampleRate;
         float inverseSampleRate;
+        bool sustainPedalPressed;
         Noise noise;
         int findFreeVoice() const;
         void noteOn(int note,int velocity);
         void startVoice(int voiceIndex, int note, int velocity);
         void noteOff(int note);
-        float calculatePeriod(int note) const;
+        float calculatePeriod(int voiceIndex, int note) const;
+        void controlChange(uint8_t data1, uint8_t data2);
 };

@@ -378,6 +378,7 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 
 void JX11AudioProcessor::update()
 {
+    // This method interfaces changes to the parameter tree to the synth engine
     // updating ADSR TODO: tidy this up
     // TODO: Set this up for all voices
     float sampleRate = float(getSampleRate());
@@ -401,12 +402,10 @@ void JX11AudioProcessor::update()
     float octave = parameterTree.getRawParameterValue("octave")->load();
     float tuning = parameterTree.getRawParameterValue("tuning")->load();
 
-    synth.tune = octave * 12.0f + tuning / 100.0f;
-
-    /* This is for tune in samples
+    // synth.tune = octave * 12.0f + tuning / 100.0f;
     float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
-    */
+    
     // Poly/Mono
     auto polyMode = parameterTree.getRawParameterValue("polyMode")->load();
     synth.numVoices = (polyMode == 0) ? 1 : Synth::MAX_VOICES;
@@ -416,6 +415,12 @@ void JX11AudioProcessor::update()
     // Save to Synth object
     noiseCopy *= noiseCopy;
     synth.noiseMix = noiseCopy * 0.06f;
+
+    synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
+    // This formula comes from the JX10, and why it was chosen is unknown, but it works for automatic gain control.
+    // I may want to move this to the synth engine
+
+    synth.outputLevel = juce::Decibels::decibelsToGain(parameterTree.getRawParameterValue("outputLevel")->load());
 }
 //==============================================================================
 // This creates new instances of the plugin..

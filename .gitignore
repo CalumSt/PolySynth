@@ -5,6 +5,7 @@ build
 Build
 .vscode
 .cache
+cmake-build-debug
 
 CMakeLists.txt.user
 CMakeCache.txt

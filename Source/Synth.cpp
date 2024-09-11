@@ -182,6 +182,8 @@ void Synth::noteOn(int note, int velocity)
  * @param velocity The velocity (loudness) of the note, ranging from 0 to 127.
  */
 {
+    if (ignoreVelocity) { velocity = 80; }
+    
     int voice = 0;
     if (numVoices > 1) {
         voice = findFreeVoice();
@@ -210,7 +212,8 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.period = calculatePeriod(voiceIndex, note);
     
     volumeTrim = 0.0008f * (3.2f - oscMix - 25.0f * noiseMix) * 1.5f;
-    voice.oscillator.amplitude = volumeTrim * velocity;
+    float mappedVelocity = 0.004f *float((velocity + 64) * (velocity +64)) - 8.0f;
+    voice.oscillator.amplitude = volumeTrim * mappedVelocity;
     // voice.oscillator.reset();
 
     // oscillator 2
@@ -225,6 +228,17 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.env.releaseMultiplier = envRelease;
     
     voice.env.attack();
+}
+
+void Synth::restartMonoVoice(int note, int velocity)
+{
+    float period = calculatePeriod(int note, int velocity);
+
+    Voice& voice =voices [0];
+    voice.period = period;
+    voice.env.level += SILENCE + SILENCE;
+    voice.note = note;
+    voice.updatePannning();
 }
 
 void Synth::noteOff(int note)

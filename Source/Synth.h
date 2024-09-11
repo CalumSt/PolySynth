@@ -149,6 +149,16 @@ class Synth
          */
         float volumeTrim;
 
+        /**
+         * @brief How senstive the filter is to velocty, from 0 to 100
+         */
+        float velocitySensitivity;
+
+        /**
+         * @brief Flag to ignore velocity
+         */
+        bool ignoreVelocity;
+
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
         float calculateAttackFromPercentage(float attackPercentage);
@@ -169,4 +179,5 @@ class Synth
         void noteOff(int note);
         float calculatePeriod(int voiceIndex, int note) const;
         void controlChange(uint8_t data1, uint8_t data2);
+        void restartMonoVoice(int note, int velocity);
 };

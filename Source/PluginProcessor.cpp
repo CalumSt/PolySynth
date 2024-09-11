@@ -421,6 +421,15 @@ void JX11AudioProcessor::update()
     // I may want to move this to the synth engine
 
     synth.outputLevel = juce::Decibels::decibelsToGain(parameterTree.getRawParameterValue("outputLevel")->load());
+
+    float filterVelocity = parameterTree.getRawParameterValue("filterVelocity")->load();
+    if (filterVelocity < -90.0f) {
+        synth.velocitySensitivity = 0.0f;
+        synth.ignoreVelocity = true;
+    } else {
+        synth.velocitySensitivity = 0.0005f * filterVelocity;
+        synth.ignoreVelocity = false;
+    }
 }
 //==============================================================================
 // This creates new instances of the plugin..

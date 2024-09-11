@@ -1,6 +1,6 @@
 #pragma once
 #include <gtest/gtest.h>
-#include "SawtoothOscillator.h"
+#include "jx11_Oscillator.h"
 
 // Arrange, Act and Assert
 
@@ -13,8 +13,8 @@ float calculatePeriod(float noteNumber, float sampleRate)
 }
 
 // Helper function to setup the oscillator
-SawtoothOscillator testSetup() {
-    SawtoothOscillator osc;
+jx11_Oscillator testSetup() {
+    jx11_Oscillator osc;
     osc.reset();
     osc.sampleRate = 44100.0f;
     osc.amplitude = 0.5f;
@@ -25,7 +25,7 @@ SawtoothOscillator testSetup() {
 
 TEST(OscTests,setup_test)
 {
-    SawtoothOscillator osc;
+    jx11_Oscillator osc;
     osc.reset();
     EXPECT_EQ(osc.amplitude,1.0f);
     EXPECT_EQ(osc.period,0.0f);
@@ -34,7 +34,7 @@ TEST(OscTests,setup_test)
 
 TEST(OscTests,nextSample_test)
 {
-    SawtoothOscillator osc = testSetup();
+    jx11_Oscillator osc = testSetup();
     auto Sample = osc.nextSample();
     EXPECT_NE(Sample,0.0f);
     EXPECT_LT(Sample,1.0f);
@@ -45,7 +45,7 @@ TEST(OscTests,nextSample_test)
 TEST(OscTests,nextSampleCorrectValue_test)
 {   
 
-    SawtoothOscillator osc = testSetup();
+    jx11_Oscillator osc = testSetup();
     auto Sample = osc.nextSample();
     float period = calculatePeriod(69.0f, 44100.0f);
     auto CORRECT_VALUE = 0.0f;
@@ -69,7 +69,7 @@ TEST(OscTests,nextSampleCorrectValue_test)
 
 TEST(OscTests,render_test)
 {
-    SawtoothOscillator osc = testSetup();
+    jx11_Oscillator osc = testSetup();
     auto Sample = osc.render();
     EXPECT_NE(Sample,0.0f);
     EXPECT_LT(Sample,1.0f);

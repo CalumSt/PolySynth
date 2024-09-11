@@ -26,7 +26,7 @@
 
 #pragma once
 #include "SineOscillator.h"
-#include "SawtoothOscillator.h"
+#include "jx11_Oscillator.h"
 #include "ADSREnvelope.h"
 #include <cmath>
 #include <algorithm>
@@ -36,8 +36,8 @@ class Voice
     public:
         int note;
         int velocity;
-        SawtoothOscillator oscillator;
-        SawtoothOscillator oscillator2;
+        jx11_Oscillator oscillator;
+        jx11_Oscillator oscillator2;
         ADSREnvelope env;
         float period;
 

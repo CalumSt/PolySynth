@@ -17,9 +17,9 @@ void Synth::allocateResources(double sampleRate_,int samplesPerBlock)
     sampleRate = static_cast<float>(sampleRate_);
 }
 
-void Synth::deallocateResources()
+void Synth::deallocateResources() const
 {
-
+    // Currently not implemented. It will be once the components are together.
 }
 
 void Synth::reset()
@@ -43,8 +43,8 @@ void Synth::render(float** outputBuffers, int sampleCount)
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
     {
         Voice& voice = voices[voiceIndex];
-        // if (voice.env.isActive()) 
-        
+        // if (voice.env.isActive())
+
         voice.oscillator.period = voice.period * pitchBend;
         voice.oscillator2.period = voice.period * detune;
         
@@ -105,6 +105,7 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
  */
 {
     // Determine the type of MIDI message based on the status byte
+    // TODO: Switch these to std::byte for byte-oriented data manipulation
     switch (data0 & 0xF0) {
         // Note off message (0x80-0x8F)
         case 0x80:
@@ -114,11 +115,11 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
         // Note on message (0x90-0x9F)
         case 0x90: 
         {
-            uint8_t note = data1 & 0x7F; // Extract the note number
-            uint8_t velo = data2 & 0x7F; // Extract the velocity
+            const uint8_t note = data1 & 0x7F; // Extract the note number
 
             // If velocity is non-zero, turn on the note; otherwise, turn it off
-            if (velo > 0) {
+            // Extract the velocity is done implicitly
+            if (uint8_t velo = data2 & 0x7F; velo > 0) {
                 noteOn(note, velo); // Turn on the note with velocity
             } else {
                 noteOff(note); // Turn off the note
@@ -137,18 +138,21 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
         // sustain pedal message
             controlChange(data1,data2);
             break;
+
+        default:
+            break;
     }
 }
 
-void Synth::setSampleRate(float sampleRate)
+void Synth::setSampleRate(float inputSampleRate)
 {
-    this->sampleRate = sampleRate;
-    this->inverseSampleRate = 1.0f / sampleRate;
+    this->sampleRate = inputSampleRate;
+    this->inverseSampleRate = 1.0f / inputSampleRate;
 
         for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
         {
             Voice& voice = voices[voiceIndex];
-            voice.setSampleRate(sampleRate);
+            voice.setSampleRate(inputSampleRate);
         }
 }
 
@@ -206,19 +210,15 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     // update panning and other parameters
     voice.update();
 
-    // oscillator 1
-    // float freq = 440.0f * std::exp2((float(note - 69) + tune + ANALOG * float(voiceIndex)) / 12.0f);
-    // voice.period = sampleRate / freq;
     voice.period = calculatePeriod(voiceIndex, note);
-    
+
+    // Automatic Gain Control and Velocity
     volumeTrim = 0.0008f * (3.2f - oscMix - 25.0f * noiseMix) * 1.5f;
     float mappedVelocity = 0.004f *float((velocity + 64) * (velocity +64)) - 8.0f;
     voice.oscillator.amplitude = volumeTrim * mappedVelocity;
-    // voice.oscillator.reset();
 
     // oscillator 2
     voice.oscillator2.amplitude = voice.oscillator.amplitude * oscMix;
-    // voice.oscillator2.reset();
 
     // ADSR updates
     // When note is hit, set parameters for initial attack    
@@ -230,15 +230,16 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.env.attack();
 }
 
-void Synth::restartMonoVoice(int note, int velocity)
+// declare unused for now, will come back to this
+void Synth::restartMonoVoice (const int note, [[maybe_unused]] int velocity)
 {
-    float period = calculatePeriod(int note, int velocity);
+    const float period = calculatePeriod(0, note);
 
     Voice& voice =voices [0];
     voice.period = period;
     voice.env.level += SILENCE + SILENCE;
     voice.note = note;
-    voice.updatePannning();
+    voice.update();
 }
 
 void Synth::noteOff(int note)
@@ -263,32 +264,28 @@ void Synth::noteOff(int note)
 
 void Synth::controlChange(uint8_t data1, uint8_t data2)
 {
-    switch (data1) 
+    // moved from switch to if for now
+    if (data1 == 0x40)
     {
-        case 0x40:
-            sustainPedalPressed = (data2 >= 64);
+        sustainPedalPressed = (data2 >= 64);
 
-            if (!sustainPedalPressed)
-            {
-                noteOff(SUSTAIN);
+        if (!sustainPedalPressed)
+        {
+            noteOff(SUSTAIN);
+        }
+    } else {
+        // reset all voices and sustain pedal when the PANIC! message is received
+        if (data1 >= 0x78) {
+            for (int voice = 0; voice < numVoices; ++voice) {
+                voices[voice].reset();
             }
-             
-            break;
-
-        default:
-            // reset all voices and sustain pedal when the PANIC! message is received
-            if (data1 >= 0x78) {
-                for (int voice = 0; voice < numVoices; ++voice) {
-                    voices[voice].reset();
-                }
-                sustainPedalPressed = false;
+            sustainPedalPressed = false;
             }
-            break;
     }
 
 }
 
-float Synth::calculatePeriod(int voiceIndex, int note) const
+float Synth::calculatePeriod (const int voiceIndex, const int note) const
 {
 /**
  * Calculates the period of a note based on its frequency.
@@ -299,38 +296,38 @@ float Synth::calculatePeriod(int voiceIndex, int note) const
 
 // another magic number, this one is equal to log(2^-1/12)
 // This causes a loop if period = 0.
-    float period = tune * std::exp(-0.05776226505f * float(note) + ANALOG * float(voiceIndex));
-// Ensure the period is 6 samples or greater, other wise the BLIT is unstable
+    float period = tune * std::exp(-0.05776226505f * static_cast<float> (note) + ANALOG * float(voiceIndex));
+// Ensure the period is 6 samples or greater, otherwise the BLIT is unstable
     while (period < 6.0f || (period * detune) < 6.0f) {period += period; }
     return period;
 }
 
-float Synth::calculateAttackFromPercentage(float attackPercentage)
+float Synth::calculateAttackFromPercentage (const float attackPercentage) const
 {
-   float envAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * attackPercentage));
-   return envAttack;
+    const float calculatedEnvAttack = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * attackPercentage));
+   return calculatedEnvAttack;
 }
 
-float Synth::calculateDecayFromPercentage(float decayPercentage)
+float Synth::calculateDecayFromPercentage (const float decayPercentage) const
 {
-    float envDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * decayPercentage));
-    return envDecay;
+    float calculatedEnvDecay = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * decayPercentage));
+    return calculatedEnvDecay;
 }
 
-float Synth::calculateSustainFromPercentage(float sustainPercentage)
+float Synth::calculateSustainFromPercentage (const float sustainPercentage) const
 {
-    float envSustain = sustainPercentage / 100.0f;
-    return envSustain;
+    float calculatedEnvSustain = sustainPercentage / 100.0f;
+    return calculatedEnvSustain;
 }
 
-float Synth::calculateReleaseFromPercentage(float releasePercentage)
+float Synth::calculateReleaseFromPercentage (const float releasePercentage) const
 {   
-    float envRelease = 0.0f;
+    float calculatedEnvRelease = 0.0f;
     if (releasePercentage < 1.0f) {
-        envRelease = 0.75f; // extra fast release
+        calculatedEnvRelease = 0.75f; // extra fast release
     } else {
-        envRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * releasePercentage));
+        calculatedEnvRelease = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * releasePercentage));
     }
 
-    return envRelease;
+    return calculatedEnvRelease;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 
 const auto PI = atanf(1.f) * 4;
 const auto TWO_PI = 2 * PI;

@@ -42,11 +42,10 @@ class Voice
         float period;
 
         // panning
-        float panLeft, panRight;
+        float panLeft;
+        float panRight;
 
-        // methods
-
-        void noteOn(int note, int velocity);
+        // method
         void noteOff();
         void reset();
         void update();

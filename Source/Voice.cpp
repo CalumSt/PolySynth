@@ -1,11 +1,6 @@
 #pragma once
 #include "Voice.h"
 
-void Voice::noteOn(int note, int velocity)
-{
-    // Do Nothing
-}
-
 float Voice::render(float input)
 {
     // get the oscillator samples
@@ -40,12 +35,12 @@ void Voice::noteOff()
 void Voice::update()
 {
     // update panning
-    float panning = std::clamp((note - 60.0f) / 24.0f, -1.0f, 1.0f); // notes outside this range are clamped
+    float panning = std::clamp((static_cast<float>(note) - 60.0f) / 24.0f, -1.0f, 1.0f); // notes outside this range are clamped
     panLeft = std::sin(PI_OVER_FOUR * (1.0f - panning));
     panRight = std::sin(PI_OVER_FOUR * (1.0f + panning));
 }
 
-void Voice::setSampleRate(float sampleRate)
+void Voice::setSampleRate (const float sampleRate)
 {
     env.setSampleRate(sampleRate);
     oscillator.sampleRate = sampleRate;

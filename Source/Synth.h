@@ -54,7 +54,7 @@ class Synth
         /**
          * @brief Deallocates resources for the synthesizer.
          */
-        void deallocateResources();
+        void deallocateResources() const;
 
         /**
          * @brief Resets the synthesizer to its default state.
@@ -161,10 +161,10 @@ class Synth
 
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
-        float calculateAttackFromPercentage(float attackPercentage);
-        float calculateDecayFromPercentage(float decayPercentage);
-        float calculateSustainFromPercentage(float sustainPercentage);       
-        float calculateReleaseFromPercentage(float releasePercentage);
+        float calculateAttackFromPercentage(float attackPercentage) const;
+        float calculateDecayFromPercentage(float decayPercentage) const;
+        float calculateSustainFromPercentage(float sustainPercentage) const;
+        float calculateReleaseFromPercentage(float releasePercentage) const;
 
         void setSampleRate(float SampleRate);
 

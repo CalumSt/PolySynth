@@ -42,7 +42,7 @@ class jx11_Oscillator : public Oscillator
         float amplitude = 1.0f;
         float modulation = 1.0f;
         float period = 0.0f;
-        float sampleRate;
+        float sampleRate = 44100.f;
         
         void reset() override
         {
@@ -65,7 +65,7 @@ class jx11_Oscillator : public Oscillator
             phase += inc;
             // if phase goes over Pi/4, start a new impulse
             if (phase <= PI_OVER_FOUR) {
-                float halfPeriod = (period / 2.0f) * modulation; // find midpoint between last impulse and next
+                const float halfPeriod = (period / 2.0f) * modulation; // find midpoint between last impulse and next
                 phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
                 dc = 0.5f * amplitude / phaseMax; // calculate dc offset
                 phaseMax *= PI;
@@ -77,7 +77,7 @@ class jx11_Oscillator : public Oscillator
                     output = amplitude*sin(phase) / phase;
                 } else {
                     output = amplitude;
-                };
+                }
 
             } else { // If between peaks of impulses
 
@@ -87,26 +87,26 @@ class jx11_Oscillator : public Oscillator
                 }
                 // calculate the sinc function output - don't need to worry about divide by 0 here
                 output = amplitude * sin(phase) / phase;
-            };
+            }
             return output - dc;
         };
 
         float render()
         {
-            float sample = nextSample();
+            const float sample = nextSample();
             // convert the BLIT into a saw wave with a leaky integrator (adding up inputs over time)
             saw = saw * 0.997f + sample;
             return sample;
         };
 
     private:
-        float phase;
-        float phaseMax;
-        float inc;
-        float dc;
-        float saw;
+        float phase = 0;
+        float phaseMax = 0;
+        float inc = 0;
+        float dc = 0;
+        float saw = 0;
 
-        float squareWave(Oscillator& other, float newPeriod)
+        void squareWave(jx11_Oscillator const& other, const float newPeriod)
         {
             reset();
 

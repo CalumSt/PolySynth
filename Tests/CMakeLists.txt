@@ -5,6 +5,7 @@ project(TESTING)
 enable_testing()
 
 # set up sources
+include(GoogleTest)
 
 set(This Tests)
 # --------------------------------------------------------------------------
@@ -13,7 +14,9 @@ set(SOURCES
     ADSREnvelope_test.cpp
     Oscillator_test.cpp
     Voice_test.cpp
-    Synth_test.cpp
+    # Synth_test.cpp
+    LFO_test.cpp
+    Filter_test.cpp
 )
 # --------------------------------------------------------------------------
 
@@ -41,5 +44,5 @@ PUBLIC
     JX11
     GTest::gtest_main)
 
-include(GoogleTest)
+
 gtest_discover_tests(${PROJECT_NAME})

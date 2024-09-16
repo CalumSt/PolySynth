@@ -31,6 +31,8 @@ Y8,    "88,,8P  88        88  88  88           88              `8b
 
 class Oscillator {
     public:
+        Oscillator() = default;
+        virtual ~Oscillator() = default;
         virtual void reset() = 0;
         virtual float nextSample() = 0;
 

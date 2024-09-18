@@ -99,12 +99,49 @@ class jx11_Oscillator : public Oscillator
             return sample;
         };
 
+    float getNextSquareSample()
+    {
+        // Similar to unipolarBlitSample, but applies a - sign to the output if it's between inpulses
+        float output = 0.0f;
+        phase += inc;
+        float correctionFactor;
+
+        // if phase goes over Pi/4, start a new impulse
+        if (phase <= PI_OVER_FOUR) {
+            correctionFactor = 1.0f;
+            float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
+            phaseMax = std::floor(0.5f + halfPeriod) - 0.5f; // This is stored in phaseMax
+            phaseMax *= PI;
+            // update inc and phase member variables
+            inc = phaseMax / halfPeriod;
+            phase = -phase;
+            // Calculate the sinc function output (avoid dividing by zero)
+            if (phase*phase > 1e-9) {
+                output = amplitude*sin(phase) / phase;
+            } else {
+                output = amplitude;
+            }
+
+        } else { // If between peaks of impulses
+            correctionFactor = -1.0f;
+            if (phase > phaseMax) { // invert increment and loop back through the sinc function
+                phase = phaseMax + phaseMax - phase;
+                inc = -inc;
+            }
+            // calculate the sinc function output - don't need to worry about divide by 0 here
+            output = amplitude * sin(phase) / phase;
+        }
+
+        return correctionFactor * output - dc;
+    }
+
     private:
         float phase = 0;
         float phaseMax = 0;
         float inc = 0;
         float dc = 0;
         float saw = 0;
+        float square = 0;
 
         void squareWave(jx11_Oscillator const& other, const float newPeriod)
         {

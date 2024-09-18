@@ -22,7 +22,6 @@ set(SOURCES
 
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-#add_executable(${This} ADSREnvelope_test.cpp)
 
 # --------------------------------------------------------------------------
 # ADD DEPENDENCIES HERE

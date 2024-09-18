@@ -1,16 +1,9 @@
 #pragma once
 #include <gtest/gtest.h>
 #include "jx11_Oscillator.h"
+#include "Helpers.h"
 
 // Arrange, Act and Assert
-
-// Helper function to calculate the period for A440Hz
-float calculatePeriod(float noteNumber, float sampleRate)
-{
-    float freq = std::exp2((noteNumber - 69.0f) / 12.0f) * 440.0f;
-    float period = sampleRate / freq;
-    return period;
-}
 
 // Helper function to setup the oscillator
 jx11_Oscillator testSetup() {
@@ -54,15 +47,13 @@ TEST(OscTests,nextSampleCorrectValue_test)
     float halfPeriod = period / 2.0f; // find midpoint between last impulse and next
     auto phaseMax = std::floor(0.5f + halfPeriod) - 0.5f;
     phaseMax *= PI;
-    // update inc and phase member variables
-    auto inc = phaseMax / halfPeriod;
     phase = -phase;
     // Calculate the sinc function output (avoid dividing by zero)
     if (phase*phase > 1e-9) {
         CORRECT_VALUE = amplitude*sin(phase) / phase;
     } else {
         CORRECT_VALUE = amplitude;
-    };
+    }
 
     EXPECT_NEAR(CORRECT_VALUE,Sample,0.01f);
 }
@@ -74,6 +65,17 @@ TEST(OscTests,render_test)
     EXPECT_NE(Sample,0.0f);
     EXPECT_LT(Sample,1.0f);
     EXPECT_GT(Sample,-1.0f);
+}
+
+TEST(OscTests,squareWave_test)
+{
+    jx11_Oscillator osc = testSetup();
+    auto numberOfSamples = 1000;
+    for (int i = 0; i < numberOfSamples; i++) {
+        float nextValue = osc.render();
+        EXPECT_GT(nextValue, -1.0f);
+        EXPECT_LT(nextValue, 1.0f);
+    }
 }
 
 

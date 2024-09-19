@@ -118,11 +118,7 @@ jobs:
 
       - name: Test
         working-directory: ${{ env.BUILD_DIR }}
-        run: ./Tests
-
-      - name: Run Benchmarks
-        working-directory: ${{ env.BUILD_DIR }}
-        run: ./Benchmarks
+        run: ctest
 
       - name: Read in .env from CMake # see GitHubENV.cmake
         run: |

@@ -75,11 +75,3 @@ inline float protectYourEarsSample(float sample)
     }
     return sample;
 }
-
-template<typename T>
-inline static void castParameter(juce::AudioProcessorValueTreeState& apvts,
-     const juce::ParameterID& id, T& destination)
-{
-    destination = dynamic_cast<T>(apvts.getParameter(id));
-    jassert(destination); // parameter does not exist or wrong type
-};

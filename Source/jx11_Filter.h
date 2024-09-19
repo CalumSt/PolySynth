@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include "Constants.h"
+#include <iostream>
 
 class jx11_Filter
 /**
@@ -22,7 +23,7 @@ public:
      */
     void updateCoefficients(float cutoff, float Q)
     {
-        g = std::tan(PI * cutoff / sampleRate);
+        g = std::tan (PI * cutoff / sampleRate);
         k = 1.0f / Q;
         a1 = 1.0f / (1.0f + g * (g + k));
         a2 = g * a1;
@@ -53,7 +54,7 @@ public:
     float render(float x)
     {
         float v3 = x - ic1eq;
-        float v1 = a1 - ic1eq + a2 * v3;
+        float v1 = a1 * ic1eq + a2 * v3;
         float v2 = ic2eq + a2 * ic1eq + a3 * v3;
         ic1eq = 2.0f * v1 - ic1eq;
         ic2eq = 2.0f * v2 - ic2eq;

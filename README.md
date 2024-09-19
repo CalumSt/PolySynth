@@ -11,6 +11,7 @@ cmake --build build
 Todo:
 
 - Hook up Filter
+- Finish setting up CI Pipeline
 - Implement better LFO
 - Modulation
 - PWM
@@ -23,4 +24,6 @@ Bugs:
 
 
 Wishlist:
-    - Ladder Filter
+
+- Ladder Filter
+- More oscillator waveforms

@@ -2,14 +2,31 @@
 #include <cmath>
 #include "Constants.h"
 #include <iostream>
+/************************************************************************
+  ,ad8888ba,    88        88  88  88      888888888888  ad88888ba
+ d8"'    `"8b   88        88  88  88           88      d8"     "8b
+d8'        `8b  88        88  88  88           88      Y8,
+88          88  88        88  88  88           88      `Y8aaaaa,
+88          88  88        88  88  88           88        `"""""8b,
+Y8,    "88,,8P  88        88  88  88           88              `8b
+ Y8a.    Y88P   Y8a.    .a8P  88  88           88      Y8a     a8P
+  `"Y8888Y"Y8a   `"Y8888Y"'   88  88888888888  88       "Y88888P"
+
+   _____   __ __   __
+  |_  \ \ / //  | /  |
+    | |\ V / `| | `| |
+    | |/   \  | |  | |
+/\__/ / /^\ \_| |__| |_
+\____/\/   \/\___/\___/
+
+* @file jx11_Filter.h
+* @author CS Islay
+* @class jx11_Filter
+* @brief A class implements a two-pole State Variable Filter (SVF) using the Cytomic filter design.
+*
+************************************************************************/
 
 class jx11_Filter
-/**
- * @file jx11_Filter.h
- * @brief A two-pole filter based on the Cytomic SVF filter.
- *
- * This class implements a two-pole State Variable Filter (SVF) using the Cytomic filter design.
- */
 {
 public:
     void setSampleRate (const float _sampleRate) { sampleRate = _sampleRate; }

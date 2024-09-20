@@ -12,9 +12,14 @@ Synth::Synth()
     sampleRate = 44100.0f;
 }
 
-void Synth::allocateResources(double sampleRate_,int samplesPerBlock)
+void Synth::allocateResources(double sampleRate_,int /*samplesPerBlock*/)
 {
     sampleRate = static_cast<float>(sampleRate_);
+
+    for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+    {
+        voices[voiceIndex].filter.setSampleRate(sampleRate);
+    }
 }
 
 void Synth::deallocateResources() const
@@ -24,6 +29,9 @@ void Synth::deallocateResources() const
 
 void Synth::reset()
 {
+    lfo = 0.0f;
+    lfoStep = 0;
+
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex) 
     {
         voices[voiceIndex].reset();
@@ -51,6 +59,9 @@ void Synth::render(float** outputBuffers, int sampleCount)
     }
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
+        // update the LFO
+        updateLFO();
+
         // get next noise sample
         auto noiseSample = noise.nextValue() * noiseMix;
 
@@ -143,6 +154,32 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
             break;
     }
 }
+
+void Synth::updateLFO() // TODO: Comment me!
+{
+    if (--lfoStep <= 0 )
+    {
+        lfoStep = LFO_MAX;
+
+        lfo += lfoInc;
+        if (lfo > PI) { lfo -= TWO_PI; }
+        const float sine = std::sin(lfo);
+        // TODO: Remove hardcoding!
+        float vibratoMod = 1.0f + sine * 0.1f;
+
+        for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+        {
+            Voice& voice = voices[voiceIndex];
+            voice.filter.updateCoefficients (1000.0f,0.707f);
+            if (voice.env.isActive())
+            {
+                voice.oscillator.modulation = vibratoMod;
+                voice.oscillator2.modulation = vibratoMod;
+            }
+        }
+    }
+}
+
 
 void Synth::setSampleRate(float inputSampleRate)
 {

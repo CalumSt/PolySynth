@@ -9,9 +9,10 @@ float Voice::render(float input)
     // TODO: replace samples and oscillators with arrays of nextSamples and Oscillators
     auto nextSample = oscillator.render();
     auto nextSample2 = oscillator2.render();
+    float outputSample = nextSample + nextSample2 + input;
+    outputSample = filter.render(outputSample);
 
     float envelopeSample = env.nextValue();
-    float outputSample = nextSample + nextSample2 + input;
     return outputSample * envelopeSample;
 }
 
@@ -22,6 +23,7 @@ void Voice::reset()
     env.reset();
     oscillator.reset();
     oscillator2.reset();
+    filter.reset();
 
     panLeft = 0.707f;
     panRight = 0.707f;

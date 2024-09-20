@@ -28,6 +28,7 @@
 #include "SineOscillator.h"
 #include "jx11_Oscillator.h"
 #include "ADSREnvelope.h"
+#include "jx11_Filter.h"
 #include <cmath>
 #include <algorithm>
 
@@ -39,13 +40,14 @@ class Voice
         jx11_Oscillator oscillator;
         jx11_Oscillator oscillator2;
         ADSREnvelope env;
+        jx11_Filter filter;
         float period;
 
         // panning
         float panLeft;
         float panRight;
 
-        // method
+        // methods
         void noteOff();
         void reset();
         void update();

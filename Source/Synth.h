@@ -36,8 +36,9 @@ class Synth
     public:
     
         static constexpr int MAX_VOICES = 8; // number of voices
-        static constexpr float ANALOG = 0.002f; // Analog oscillator drift
-        static const int SUSTAIN = -1;
+        constexpr float ANALOG = 0.002f; // Analog oscillator drift
+        constexpr int SUSTAIN = -1;
+        constexpr int LFO_MAX = 32; // LFO update step
 
         /**
          * @brief Default constructor.
@@ -159,6 +160,11 @@ class Synth
          */
         bool ignoreVelocity;
 
+        /**
+         * @brief LFO phase increment
+         */
+        float lfoInc;
+
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
         float calculateAttackFromPercentage(float attackPercentage) const;
@@ -171,8 +177,12 @@ class Synth
     private:
         float sampleRate;
         float inverseSampleRate;
+        float lfo;
+        int lfoStep;
         bool sustainPedalPressed;
         Noise noise;
+
+        void updateLFO();
         int findFreeVoice() const;
         void noteOn(int note,int velocity);
         void startVoice(int voiceIndex, int note, int velocity);

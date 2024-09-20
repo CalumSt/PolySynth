@@ -384,7 +384,6 @@ void JX11AudioProcessor::update()
     float sampleRate = float(getSampleRate());
 
     synth.setSampleRate(sampleRate);
-    float attackMultiplier = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
     synth.envAttack = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
     synth.envDecay = synth.calculateDecayFromPercentage(parameterTree.getRawParameterValue("envDecay")->load());
     synth.envSustain = synth.calculateSustainFromPercentage(parameterTree.getRawParameterValue("envSustain")->load());
@@ -408,7 +407,12 @@ void JX11AudioProcessor::update()
     
     // Poly/Mono
     auto polyMode = parameterTree.getRawParameterValue("polyMode")->load();
-    synth.numVoices = (polyMode == 0) ? 1 : Synth::MAX_VOICES;
+    synth.numVoices = (polyMode == 0) ? 1 : synth.MAX_VOICES;
+
+    // Lfo parameters
+    const float inverseUpdateRate =  synth.LFO_MAX / sampleRate;
+    float lfoRate = std::exp(7.0f * parameterTree.getRawParameterValue("lfoRate")->load() - 4.0f);
+    synth.lfoInc = lfoRate * inverseUpdateRate * static_cast<float>(TWO_PI);
 
     // get the pointer to the atomic and load it, then scale it
     float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;

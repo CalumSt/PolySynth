@@ -120,6 +120,11 @@ jobs:
         working-directory: ${{ env.BUILD_DIR }}
         run: ctest
 
+      - name: Read in .env from CMake # see GitHubENV.cmake
+        run: |
+          cat .env # show us the config
+          cat .env >> $GITHUB_ENV # pull in our PRODUCT_NAME, etc
+
       - name: Set additional env vars for next steps
         run: |
           ARTIFACTS_PATH=${{ env.BUILD_DIR }}/${{ env.PROJECT_NAME }}_artefacts/${{ env.BUILD_TYPE }}

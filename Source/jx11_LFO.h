@@ -46,7 +46,7 @@ public:
     {
         if (--lfoStep <= 0)
         {
-            lfoPhase = LFO_MAX;
+            lfoStep = LFO_MAX;
 
             lfoPhase += lfoInc;
             if (lfoPhase > PI)

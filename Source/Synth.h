@@ -36,7 +36,7 @@
 class Synth
 {
     public:
-        const int MAX_VOICES = 8; // number of voices
+        static const int MAX_VOICES = 8; // number of voices
         const float ANALOG = 0.002f; // Analog oscillator drift
         const int SUSTAIN = -1;
         const int LFO_MAX = 32; // LFO update step
@@ -81,7 +81,7 @@ class Synth
         /**
          * @brief The voices used to hold note, oscillators and envelopes
          */
-        std::array<Voice, 8> voices;
+        std::array<Voice, MAX_VOICES> voices;
 
         /**
          * @brief The output level multiplier of the synth.

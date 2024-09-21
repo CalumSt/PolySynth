@@ -81,7 +81,7 @@ TEST(VoiceTests,render_test) {
         auto testSample = voice.render(0.0f);
 
         EXPECT_NE(0.0f, testSample);
-        EXPECT_GT (-1.0f, testSample);
-        EXPECT_LT(1.0f, testSample);
+        EXPECT_GE(testSample, -1.0f);
+        EXPECT_LE(testSample, 1.0f);
     };
 }

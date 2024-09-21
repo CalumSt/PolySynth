@@ -2,8 +2,9 @@
 
 #include "Constants.h"
 #include "SineOscillator.h"
+constexpr int LFO_MAX = 32;
 
-class jx11_LFO : public SineOscillator
+class jx11_LFO
 /**
  * LFO (Low Frequency Oscillator)
  *
@@ -20,25 +21,49 @@ class jx11_LFO : public SineOscillator
  */
 {
 public:
-    jx11_LFO()
+    void reset()
     {
-        amplitude = 1.0f;
-        phase = 0.0f;
-        inc = 0.0f;
-        SineOscillator::reset();
-
-    }
-    const float LFO_MAX = 32.0f;
-
-    void setFrequency (float frequency)
-    {
-        // Sets the frequency of the lfo in hertz, converting to the internal variables
-        // This is done for intuitive interactions with the LFO
-        // TODO: Model in python to set conversions
-        if (frequency > LFO_MAX) { frequency = LFO_MAX; }
-        // phase takes a value between 0 and 1, so need to convert to ft
-        phase = frequency * inc;
+        lfoStep = 0;
+        lfoInc = 0.0f;
+        lfoRate = 0.0f;
     }
 
+    void setSampleRate(float newSampleRate)
+    {
+        sampleRate = newSampleRate;
+        inverseUpdateRate = LFO_MAX / newSampleRate;
+    }
+
+    void setLfoRate(float rate)
+    {
+        lfoRate = std::exp(7.0f * rate - 4.0f);
+        lfoInc = lfoRate * inverseUpdateRate * TWO_PI;
+    }
+
+    float render()// TODO: Comment me!
+    {
+        if (--lfoStep <= 0)
+        {
+            lfoStep = LFO_MAX;
+
+            lfo += lfoInc;
+            if (lfo > PI)
+            {
+                lfo -= TWO_PI;
+            }
+            const float sine = std::sin (lfo);
+            // TODO: Remove hardcoding!
+            lfo = 1.0f + sine * 0.1f;
+        }
+        return lfo;
+    }
+
+private:
+    float sampleRate = 44100.0f;
+    float inverseUpdateRate = 1 * LFO_MAX / sampleRate;
+    float lfo = 0.0f;
+    int lfoStep = LFO_MAX;
+    float lfoInc = 0.0f;
+    float lfoRate = 0.0f;
 
 };

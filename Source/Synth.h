@@ -23,9 +23,11 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include "Voice.h"
 #include "Noise.h"
+#include "Voice.h"
+#include <JuceHeader.h>
+#include "Constants.h"
+
 
 /**
  * @class Synth
@@ -34,11 +36,10 @@
 class Synth
 {
     public:
-    
-        static constexpr int MAX_VOICES = 8; // number of voices
-        constexpr float ANALOG = 0.002f; // Analog oscillator drift
-        constexpr int SUSTAIN = -1;
-        constexpr int LFO_MAX = 32; // LFO update step
+        const int MAX_VOICES = 8; // number of voices
+        const float ANALOG = 0.002f; // Analog oscillator drift
+        const int SUSTAIN = -1;
+        const int LFO_MAX = 32; // LFO update step
 
         /**
          * @brief Default constructor.
@@ -78,12 +79,12 @@ class Synth
         void midiMessages(uint8_t data0, uint8_t data1, uint8_t data2);
 
         /**
-         * @brief The voices used to hold note, oscillators and evelopes
+         * @brief The voices used to hold note, oscillators and envelopes
          */
-        std::array<Voice, MAX_VOICES> voices;
+        std::array<Voice, 8> voices;
 
         /**
-         * @brief The output level multiplier of the synth..
+         * @brief The output level multiplier of the synth.
          * @note Range: 0.0 (no decay) to 1.0 (maximum decay)
          */
         float outputLevel;
@@ -128,7 +129,7 @@ class Synth
          */
         float detune;
         /**
-         * @brief The fine tuning of the oscillator.
+         * @brief The fine-tuning of the oscillator.
          * @note Range: -1.0 (maximum fine tune) to 1.0 (maximum fine tune)
          */
         float oscFine;
@@ -151,7 +152,7 @@ class Synth
         float volumeTrim;
 
         /**
-         * @brief How senstive the filter is to velocty, from 0 to 100
+         * @brief How sensitive the filter is to velocity, from 0 to 100
          */
         float velocitySensitivity;
 

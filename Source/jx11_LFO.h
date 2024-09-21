@@ -19,6 +19,8 @@ class jx11_LFO
  * or square wave, and the user can adjust the frequency and amplitude of
  * the LFO to achieve the desired effect.
  */
+
+// TODO: add Doxygen comments
 {
 public:
     void reset()
@@ -34,7 +36,7 @@ public:
         inverseUpdateRate = LFO_MAX / newSampleRate;
     }
 
-    void setLfoRate(float rate)
+    void setLfoRate (const float rate)
     {
         lfoRate = std::exp(7.0f * rate - 4.0f);
         lfoInc = lfoRate * inverseUpdateRate * TWO_PI;
@@ -44,24 +46,25 @@ public:
     {
         if (--lfoStep <= 0)
         {
-            lfoStep = LFO_MAX;
+            lfoPhase = LFO_MAX;
 
-            lfo += lfoInc;
-            if (lfo > PI)
+            lfoPhase += lfoInc;
+            if (lfoPhase > PI)
             {
-                lfo -= TWO_PI;
+                lfoPhase -= TWO_PI;
             }
-            const float sine = std::sin (lfo);
+            const float sine = std::sin (lfoPhase);
             // TODO: Remove hardcoding!
-            lfo = 1.0f + sine * 0.1f;
+            lfoOutput = 1.0f + sine * 0.1f;
         }
-        return lfo;
+        return lfoOutput;
     }
 
 private:
     float sampleRate = 44100.0f;
     float inverseUpdateRate = 1 * LFO_MAX / sampleRate;
-    float lfo = 0.0f;
+    float lfoPhase = 0.0f;
+    float lfoOutput = 1.0f;
     int lfoStep = LFO_MAX;
     float lfoInc = 0.0f;
     float lfoRate = 0.0f;

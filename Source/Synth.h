@@ -23,11 +23,11 @@
 
 #pragma once
 
+#include "Constants.h"
 #include "Noise.h"
 #include "Voice.h"
+#include "jx11_LFO.h"
 #include <JuceHeader.h>
-#include "Constants.h"
-
 
 /**
  * @class Synth
@@ -82,6 +82,11 @@ class Synth
          * @brief The voices used to hold note, oscillators and envelopes
          */
         std::array<Voice, MAX_VOICES> voices;
+
+        /**
+         * @brief The LFO for modulation.
+         */
+        jx11_LFO lfo;
 
         /**
          * @brief The output level multiplier of the synth.
@@ -161,11 +166,6 @@ class Synth
          */
         bool ignoreVelocity;
 
-        /**
-         * @brief LFO phase increment
-         */
-        float lfoInc;
-
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
         float calculateAttackFromPercentage(float attackPercentage) const;
@@ -178,12 +178,9 @@ class Synth
     private:
         float sampleRate;
         float inverseSampleRate;
-        float lfo;
-        int lfoStep;
         bool sustainPedalPressed;
         Noise noise;
 
-        void updateLFO();
         int findFreeVoice() const;
         void noteOn(int note,int velocity);
         void startVoice(int voiceIndex, int note, int velocity);

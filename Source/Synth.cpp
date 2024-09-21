@@ -29,8 +29,7 @@ void Synth::deallocateResources() const
 
 void Synth::reset()
 {
-    lfo = 0.0f;
-    lfoStep = 0;
+    lfo.reset();
 
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex) 
     {
@@ -52,7 +51,10 @@ void Synth::render(float** outputBuffers, int sampleCount)
     {
         Voice& voice = voices[voiceIndex];
         // if (voice.env.isActive())
+        // Update filter
+        voice.filter.updateCoefficients (1000.0f,0.707f);
 
+        // Update oscillators
         voice.oscillator.period = voice.period * pitchBend;
         voice.oscillator2.period = voice.period * detune;
         
@@ -60,7 +62,16 @@ void Synth::render(float** outputBuffers, int sampleCount)
     // Loop through samples
     for (int sample = 0; sample < sampleCount; ++ sample) {
         // update the LFO
-        updateLFO();
+        float vibratoMod = lfo.render();
+        for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
+        {
+            Voice& voice = voices[voiceIndex];
+            if (voice.env.isActive())
+            {
+                voice.oscillator.modulation = vibratoMod;
+                voice.oscillator2.modulation = vibratoMod;
+            }
+        }
 
         // get next noise sample
         auto noiseSample = noise.nextValue() * noiseMix;
@@ -155,36 +166,12 @@ void Synth::midiMessages(uint8_t data0, uint8_t data1, uint8_t data2)
     }
 }
 
-void Synth::updateLFO() // TODO: Comment me!
-{
-    if (--lfoStep <= 0 )
-    {
-        lfoStep = LFO_MAX;
-
-        lfo += lfoInc;
-        if (lfo > PI) { lfo -= TWO_PI; }
-        const float sine = std::sin(lfo);
-        // TODO: Remove hardcoding!
-        float vibratoMod = 1.0f + sine * 0.1f;
-
-        for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
-        {
-            Voice& voice = voices[voiceIndex];
-            voice.filter.updateCoefficients (1000.0f,0.707f);
-            if (voice.env.isActive())
-            {
-                voice.oscillator.modulation = vibratoMod;
-                voice.oscillator2.modulation = vibratoMod;
-            }
-        }
-    }
-}
-
-
 void Synth::setSampleRate(float inputSampleRate)
 {
     this->sampleRate = inputSampleRate;
     this->inverseSampleRate = 1.0f / inputSampleRate;
+
+    lfo.setSampleRate (inputSampleRate);
 
         for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
         {

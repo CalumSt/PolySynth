@@ -9,14 +9,14 @@ TEST(LfoTest, render_test)
 {
     jx11_LFO LFO;
     auto nextSample = LFO.render();
-    EXPECT_EQ(0.0f,nextSample);
+    EXPECT_EQ(1.0f,nextSample);
 }
 
 TEST(LfoTest, renderOneSecond_test)
 {
     jx11_LFO LFO;
     LFO.setSampleRate (44100.f);
-    LFO.setLfoRate (1.0f);
+    LFO.setLfoRate (4.0f);
     constexpr int numberOfSamples = 44100;
     for (int i = 0; i < numberOfSamples; i++)
     {

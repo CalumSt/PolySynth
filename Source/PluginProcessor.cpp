@@ -146,8 +146,7 @@ void JX11AudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::M
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    bool expected = true;
-    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected,false)) {
+    if (bool expected = true; isNonRealtime() || parametersChanged.compare_exchange_strong(expected,false)) {
         update(); // This function is used to update parameters
     }
 
@@ -379,9 +378,7 @@ void JX11AudioProcessor::render(juce::AudioBuffer<float>& buffer, int sampleCoun
 void JX11AudioProcessor::update()
 {
     // This method interfaces changes to the parameter tree to the synth engine
-    // updating ADSR TODO: tidy this up
-    // TODO: Set this up for all voices
-    float sampleRate = float(getSampleRate());
+    auto sampleRate = float(getSampleRate());
 
     synth.setSampleRate(sampleRate);
     synth.envAttack = synth.calculateAttackFromPercentage(parameterTree.getRawParameterValue("envAttack")->load());
@@ -401,18 +398,16 @@ void JX11AudioProcessor::update()
     float octave = parameterTree.getRawParameterValue("octave")->load();
     float tuning = parameterTree.getRawParameterValue("tuning")->load();
 
-    // synth.tune = octave * 12.0f + tuning / 100.0f;
     float tuneInSemi = -36.3763f - 12.0f * octave - tuning / 100.0f;
     synth.tune = sampleRate * std::exp(0.05776226505f * tuneInSemi);
     
     // Poly/Mono
     auto polyMode = parameterTree.getRawParameterValue("polyMode")->load();
-    synth.numVoices = (polyMode == 0) ? 1 : synth.MAX_VOICES;
+    synth.numVoices = (polyMode == 0) ? 1 : Synth::MAX_VOICES;
 
     // Lfo parameters
-    const float inverseUpdateRate =  synth.LFO_MAX / sampleRate;
-    float lfoRate = std::exp(7.0f * parameterTree.getRawParameterValue("lfoRate")->load() - 4.0f);
-    synth.lfoInc = lfoRate * inverseUpdateRate * static_cast<float>(TWO_PI);
+    float lfoRate = parameterTree.getRawParameterValue("lfoRate")->load();
+    synth.lfo.setLfoRate (lfoRate);
 
     // get the pointer to the atomic and load it, then scale it
     float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;

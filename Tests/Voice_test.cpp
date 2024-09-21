@@ -67,14 +67,21 @@ TEST(VoiceTests,render_test) {
     voice.oscillator.period = period;
     voice.oscillator2.period = period;
 
+
+    voice.filter.reset();
+    voice.filter.setSampleRate (44100.0f);
+    voice.filter.updateCoefficients(1000.0f,0.707f);
+
     auto sample = voice.render(0.5f);
     EXPECT_GT(sample, 0.0f);
 
     float numberOfSamples = 1000;
     for (int i = 0; i < numberOfSamples; i++) {
 
-        auto sample = voice.render(0.0f);
+        auto testSample = voice.render(0.0f);
 
-        EXPECT_NE(0.0f, sample);
+        EXPECT_NE(0.0f, testSample);
+        EXPECT_GT (-1.0f, testSample);
+        EXPECT_LT(1.0f, testSample);
     };
 }

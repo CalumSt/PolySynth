@@ -42,6 +42,8 @@ public:
         lfoInc = lfoRate * inverseUpdateRate * TWO_PI;
     }
 
+    void setVibrato (const float _vibrato) { vibrato = _vibrato; }
+
     float render()// TODO: Comment me!
     {
         if (--lfoStep <= 0)
@@ -54,8 +56,7 @@ public:
                 lfoPhase -= TWO_PI;
             }
             const float sine = std::sin (lfoPhase);
-            // TODO: Remove hardcoding!
-            lfoOutput = 1.0f + sine * 0.1f;
+            lfoOutput = 1.0f + sine * vibrato;
         }
         return lfoOutput;
     }
@@ -68,5 +69,5 @@ private:
     int lfoStep = LFO_MAX;
     float lfoInc = 0.0f;
     float lfoRate = 0.0f;
-
+    float vibrato = 0.0f;
 };

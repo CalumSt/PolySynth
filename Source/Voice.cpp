@@ -24,6 +24,7 @@ void Voice::reset()
     oscillator.reset();
     oscillator2.reset();
     filter.reset();
+    filterEnv.reset();
 
     panLeft = 0.707f;
     panRight = 0.707f;
@@ -32,10 +33,16 @@ void Voice::reset()
 void Voice::noteOff()
 {
     env.release();
+    filterEnv.release();
 }
 
 void Voice::update()
 {
+    // update filter
+    float fenv = filterEnv.nextValue();
+    float modulatedCutoff = cutoff * std::exp (filterMod + filterEnvDepth * fenv);
+    modulatedCutoff = std::clamp (modulatedCutoff, 30.0f, 20000.0f);
+    filter.updateCoefficients (modulatedCutoff, resonance);
     // update panning
     float panning = std::clamp((static_cast<float>(note) - 60.0f) / 24.0f, -1.0f, 1.0f); // notes outside this range are clamped
     panLeft = std::sin(PI_OVER_FOUR * (1.0f - panning));
@@ -44,6 +51,7 @@ void Voice::update()
 
 void Voice::setSampleRate (const float sampleRate)
 {
+    filter.setSampleRate (sampleRate);
     env.setSampleRate(sampleRate);
     oscillator.sampleRate = sampleRate;
     oscillator2.sampleRate = sampleRate;

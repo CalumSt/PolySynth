@@ -45,22 +45,25 @@ void Synth::render(float** outputBuffers, int sampleCount)
 {
     float* outputBufferLeft = outputBuffers[0];
     float* outputBufferRight = outputBuffers[1];
-
+    lfo.setVibrato (vibrato);
     // set up oscillator periods
     for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
     {
         Voice& voice = voices[voiceIndex];
-        // if (voice.env.isActive())
-        // Update filter
-        voice.filter.updateCoefficients (1000.0f,0.707f);
-
+        // Update voice
+        voice.resonance = filterResonance;
+        voice.filterMod = filterKeyTracking + filterLfoDepth;
+        voice.filterEnvDepth = filterEnvDepth;
+        voice.update();
         // Update oscillators
+        // TODO: Put these into the update voice method
         voice.oscillator.period = voice.period * pitchBend;
         voice.oscillator2.period = voice.period * detune;
         
     }
     // Loop through samples
-    for (int sample = 0; sample < sampleCount; ++ sample) {
+    for (int sample = 0; sample < sampleCount; ++sample)
+    {
         // update the LFO
         float vibratoMod = lfo.render();
         for (int voiceIndex = 0; voiceIndex < MAX_VOICES; ++voiceIndex)
@@ -231,11 +234,10 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     Voice& voice = voices[voiceIndex];
     voice.note = note;
 
+    voice.period = calculatePeriod (voiceIndex, note);
+    voice.cutoff = sampleRate / (voice.period - PI);
     // update panning and other parameters
     voice.update();
-
-    voice.period = calculatePeriod(voiceIndex, note);
-
     // Automatic Gain Control and Velocity
     volumeTrim = 0.0008f * (3.2f - oscMix - 25.0f * noiseMix) * 1.5f;
     float mappedVelocity = 0.004f *float((velocity + 64) * (velocity +64)) - 8.0f;
@@ -250,7 +252,14 @@ void Synth::startVoice(int voiceIndex, int note, int velocity)
     voice.env.decayMultiplier = envDecay;
     voice.env.sustainLevel = envSustain;
     voice.env.releaseMultiplier = envRelease;
-    
+
+    // Similarly for the filter envelope
+    voice.filterEnv.attackMultiplier = filterAttack;
+    voice.filterEnv.decayMultiplier = filterDecay;
+    voice.filterEnv.sustainLevel = filterSustain;
+    voice.filterEnv.releaseMultiplier = filterRelease;
+
+    voice.filterEnv.attack();
     voice.env.attack();
 }
 

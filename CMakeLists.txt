@@ -19,7 +19,7 @@ set(PROJECT_NAME "JX11")
 # From Eyal Amir: https://forum.juce.com/t/cmake-and-intellisense-for-windows-vscode/62183
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
-set(COMPANY_NAME "Quilts")
+set(COMPANY_NAME "QUILTS")
 
 
 project(${PROJECT_NAME} VERSION 0.1)

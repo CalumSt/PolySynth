@@ -166,6 +166,56 @@ class Synth
          */
         bool ignoreVelocity;
 
+        /**
+         * @brief The cutoff frequency of the filter.
+         */
+        float filterCutoff;
+
+        /**
+         * @brief The resonance of the filter.
+         */
+        float filterResonance;
+
+        /**
+         * @brief the amount the LFO is modulating the filter.
+         */
+        float filterLfoDepth;
+
+        /**
+         * @brief The keytracked filter frequency.
+         */
+        float filterKeyTracking;
+
+        /**
+         * @brief The amount of vibrato.
+         */
+        float vibrato;
+
+        /**
+        * @brief The attack time of the filter envelope.
+         */
+        float filterAttack;
+
+        /**
+        * @brief The decay time of the filter envelope.
+        */
+        float filterDecay;
+
+        /**
+        * @brief The sustain level of the filter envelope.
+        */
+        float filterSustain;
+
+        /**
+        * @brief The release time of the filter envelope.
+        */
+        float filterRelease;
+
+        /**
+        * @brief The attack time of the filter envelope.
+        */
+        float filterEnvDepth;
+
         // make documentation for these: make sure it's clear that these are for setting the parameters from a percentage
         
         float calculateAttackFromPercentage(float attackPercentage) const;

@@ -17,6 +17,7 @@ TEST(LfoTest, renderOneSecond_test)
     jx11_LFO LFO;
     LFO.setSampleRate (44100.f);
     LFO.setLfoRate (4.0f);
+    LFO.setVibrato (0.01f);
     constexpr int numberOfSamples = 44100;
     for (int i = 0; i < numberOfSamples; i++)
     {

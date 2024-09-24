@@ -41,7 +41,12 @@ class Voice
         jx11_Oscillator oscillator2;
         ADSREnvelope env;
         jx11_Filter filter;
+        ADSREnvelope filterEnv;
         float period;
+        float cutoff;
+        float resonance;
+        float filterMod;
+        float filterEnvDepth;
 
         // panning
         float panLeft;

@@ -385,7 +385,12 @@ void JX11AudioProcessor::update()
     synth.envDecay = synth.calculateDecayFromPercentage(parameterTree.getRawParameterValue("envDecay")->load());
     synth.envSustain = synth.calculateSustainFromPercentage(parameterTree.getRawParameterValue("envSustain")->load());
     synth.envRelease = synth.calculateReleaseFromPercentage(parameterTree.getRawParameterValue("envRelease")->load());
-
+    // Filter envelope
+    synth.filterAttack = synth.calculateAttackFromPercentage (parameterTree.getRawParameterValue ("filterAttack")->load());
+    synth.filterDecay = synth.calculateDecayFromPercentage (parameterTree.getRawParameterValue ("filterDecay")->load());
+    synth.filterSustain = synth.calculateSustainFromPercentage (parameterTree.getRawParameterValue ("filterSustain")->load());
+    synth.filterRelease = synth.calculateReleaseFromPercentage (parameterTree.getRawParameterValue ("filterRelease")->load());
+    synth.filterEnvDepth = 0.06f * parameterTree.getRawParameterValue ("filterEnv")->load();
 
     // Oscillators
     synth.oscMix = parameterTree.getRawParameterValue("oscMix")->load() / 100.0f;
@@ -410,10 +415,25 @@ void JX11AudioProcessor::update()
     synth.lfo.setLfoRate (lfoRate);
 
     // get the pointer to the atomic and load it, then scale it
-    float noiseCopy = parameterTree.getRawParameterValue("noise")->load() / 100.0f;
+    float noise = parameterTree.getRawParameterValue ("noise")->load() / 100.0f;
     // Save to Synth object
-    noiseCopy *= noiseCopy;
-    synth.noiseMix = noiseCopy * 0.06f;
+    noise *= noise;
+    synth.noiseMix = noise * 0.06f;
+
+    // these are throwing a non-fatal error
+    float filterResonance = parameterTree.getRawParameterValue ("filterReso")->load();
+    synth.filterResonance = filterResonance * 0.01f;
+
+    // filter key tracking
+    synth.filterKeyTracking = 0.08f * parameterTree.getRawParameterValue ("filterFreq")->load() - 1.5f;
+
+    // filter LFO depth
+    float filterLfoDepth = 0.01f * parameterTree.getRawParameterValue ("filterLFO")->load();
+    synth.filterLfoDepth = 2.5f * filterLfoDepth * filterLfoDepth;
+
+    // vibrato
+    float vibrato = parameterTree.getRawParameterValue ("vibrato")->load() / 200.0f;
+    synth.vibrato = 0.2f * vibrato * vibrato;
 
     synth.volumeTrim = 0.0008f * (3.2f - synth.oscMix - 25.0f * synth.noiseMix) * 1.5f;
     // This formula comes from the JX10, and why it was chosen is unknown, but it works for automatic gain control.

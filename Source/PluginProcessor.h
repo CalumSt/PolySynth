@@ -10,8 +10,9 @@
 #include <JuceHeader.h>
 #include "Synth.h"
 #include "Utils.h"
+#include <foleys_gui_magic.h>
 //==============================================================================
-class JX11AudioProcessor  : public juce::AudioProcessor, private juce::ValueTree::Listener
+class JX11AudioProcessor  : public foleys::MagicProcessor, private juce::ValueTree::Listener
 {
 public:
     //==============================================================================

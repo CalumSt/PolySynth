@@ -26,7 +26,11 @@ project(${PROJECT_NAME} VERSION 0.1)
 
 add_subdirectory(Libs/JUCE)
 
-add_subdirectory(Libs/melatonin_inspector)
+# add_subdirectory(Libs/melatonin_inspector)
+
+add_subdirectory(Libs/foleys_gui_magic)
+
+juce_add_module(foleys_gui_magic)
 
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
@@ -57,18 +61,22 @@ target_compile_definitions(${PROJECT_NAME}
         # JUCE_WEB_BROWSER and JUCE_USE_CURL would be on by default, but you might not need them.
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
-        JUCE_VST3_CAN_REPLACE_VST2=0)
+        JUCE_VST3_CAN_REPLACE_VST2=0
+        FOLEYS_ENABLE_BINARY_DATA=0 # Foley specific stuff
+        FOLEYS_SHOW_GUI_EDITOR_PALLETTE=1
+        FOLEYS_SAVE_EDITED_GUI_IN_PLUGIN_STATE=0)
 
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         # AudioPluginData           # If we'd created a binary data target, we'd link to it here
         juce::juce_audio_utils
-        melatonin_inspector
+        foleys_gui_magic
     PUBLIC
         juce::juce_recommended_config_flags
-        juce::juce_recommended_lto_flags
-        juce::juce_recommended_warning_flags)
+        juce::juce_recommended_lto_flags #
+        juce::juce_recommended_warning_flags
+)
 
 
 ## Testing

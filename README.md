@@ -11,12 +11,14 @@ cmake --build build
 Todo:
 
 - Hook up Filter
+- Set up Filter Keytracking
+- Presets
+- Filter ADSR & LFO
 - Finish setting up CI Pipeline
-- Implement better LFO
 - Modulation
 - PWM
-- Square Wave
-- Triangle Wave
+- Square Wave oscillator waveform
+- Triangle Wave oscillator waveform
 - Synth.h unit tests
 - UI
 
@@ -26,4 +28,4 @@ Bugs:
 Wishlist:
 
 - Ladder Filter
-- More oscillator waveforms
+- More 

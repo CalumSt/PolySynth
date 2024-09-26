@@ -7,12 +7,12 @@
 */
 
 #pragma once
-#include <JuceHeader.h>
 #include "Synth.h"
 #include "Utils.h"
-#include <foleys_gui_magic.h>
+#include <JuceHeader.h>
+#include <foleys_gui_magic/General/foleys_MagicProcessor.h>
 //==============================================================================
-class JX11AudioProcessor  : public foleys::MagicProcessor, private juce::ValueTree::Listener
+class JX11AudioProcessor : public foleys::MagicProcessor, juce::ValueTree::Listener
 {
 public:
     //==============================================================================
@@ -34,8 +34,6 @@ public:
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
     //==============================================================================
-    juce::AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override;
 
     //==============================================================================
     const juce::String getName() const override;
@@ -102,6 +100,11 @@ private:
       parametersChanged.store(true);
     }
     void update();
+
+    // GUI MAGIC: define that as last member of your AudioProcessor
+    foleys::MagicLevelSource* outputMeter = nullptr;
+    foleys::MagicPlotSource* oscilloscope = nullptr;
+    foleys::MagicPlotSource* analyser = nullptr;
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (JX11AudioProcessor)
 };

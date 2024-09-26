@@ -28,10 +28,6 @@ add_subdirectory(Libs/JUCE)
 
 # add_subdirectory(Libs/melatonin_inspector)
 
-add_subdirectory(Libs/foleys_gui_magic)
-
-juce_add_module(foleys_gui_magic)
-
 juce_add_plugin(${PROJECT_NAME}
     # VERSION ...                               # Set this if the plugin version is different to the project version
     # ICON_BIG ...                              # ICON_* arguments specify a path to an image file to use as an icon for the Standalone
@@ -50,11 +46,25 @@ juce_add_plugin(${PROJECT_NAME}
     PRODUCT_NAME "JX11"                         # The name of the final executable, which can differ from the target name
 )
 
+add_subdirectory(Libs/foleys_gui_magic/modules)
+
 juce_generate_juce_header(${PROJECT_NAME})
 
 file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS 
 "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Source/*.h")
 target_sources("${PROJECT_NAME}" PRIVATE ${SourceFiles})
+
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        # AudioPluginData           # If we'd created a binary data target, we'd link to it here
+        foleys_gui_magic
+        juce::juce_audio_basics
+        juce::juce_audio_plugin_client
+        juce::juce_audio_processors
+        juce::juce_audio_utils
+        juce::juce_recommended_warning_flags
+        juce::juce_recommended_config_flags
+        juce::juce_recommended_lto_flags)
 
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
@@ -62,26 +72,15 @@ target_compile_definitions(${PROJECT_NAME}
         JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
         JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
         JUCE_VST3_CAN_REPLACE_VST2=0
-        FOLEYS_ENABLE_BINARY_DATA=0 # Foley specific stuff
+        FOLEYS_ENABLE_BINARY_DATA=0
         FOLEYS_SHOW_GUI_EDITOR_PALLETTE=1
         FOLEYS_SAVE_EDITED_GUI_IN_PLUGIN_STATE=0)
-
-
-target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        # AudioPluginData           # If we'd created a binary data target, we'd link to it here
-        juce::juce_audio_utils
-        foleys_gui_magic
-    PUBLIC
-        juce::juce_recommended_config_flags
-        juce::juce_recommended_lto_flags #
-        juce::juce_recommended_warning_flags
-)
-
 
 ## Testing
 
 add_subdirectory(Tests)
 add_subdirectory(Libs/googletest)
 enable_testing()
+
+
 
